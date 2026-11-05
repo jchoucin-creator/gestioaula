@@ -95,7 +95,9 @@ Mentre l'observació està activa, tocar un nom serveix per valorar-lo. Per mour
 
   A Google Sheets, clica la cel·la de la nota del primer alumne i enganxa.
 
-  Des de la mateixa revisió, **Imprimeix (PDF)** genera la llista d'alumnes amb el nivell i la nota de l'activitat triada, per arxivar-la o imprimir-la. Cal que la llista del full també estigui en ordre alfabètic per cognoms.
+  Cal que la llista del full també estigui en ordre alfabètic per cognoms.
+
+  Des de la mateixa revisió, **Imprimeix (PDF)** genera la llista d'alumnes amb el nivell i la nota de l'activitat triada, per arxivar-la o imprimir-la.
 - A l'Excel, les files poden anar en **ordre alfabètic per cognoms** o en **el mateix ordre que la llista enganxada**. Si copies la llista des del teu llibre de notes i tries aquesta segona opció, les files coincidiran exactament amb les del llibre.
 - Si enganxes també la columna del **NIA**, apareix a l'Excel com a primera columna. No es mostra mai a la pantalla.
 - Columnes: `NIA` (si n'hi ha) · `Alumne` · `Grup` · una columna per activitat amb `AE`, `AN`, `AS`, `NA` o `Absent`.
