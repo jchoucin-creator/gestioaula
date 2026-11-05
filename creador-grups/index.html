@@ -240,6 +240,39 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
       <h1>Creador de grups</h1>
     </div>
 
+    <details open>
+      <summary>Presentació</summary>
+      <div class="stack">
+        <div>
+          <label for="title">Títol</label>
+          <input type="text" id="title" value="Grups de treball">
+        </div>
+        <div class="grid2">
+          <div>
+            <label for="naming">Nom dels grups</label>
+            <select id="naming">
+              <option value="num">Grup 1, 2, 3…</option>
+              <option value="letter">Grup A, B, C…</option>
+              <option value="instr">Instruments</option>
+              <option value="notes">Notes musicals</option>
+              <option value="colors">Colors</option>
+            </select>
+          </div>
+          <div>
+            <label for="format">Noms de l'alumnat</label>
+            <select id="format">
+              <option value="full">Complets</option>
+              <option value="initial">Nom + inicial</option>
+              <option value="first">Només el nom</option>
+            </select>
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" id="flip" checked> <span>Gira «Cognoms, Nom» a «Nom Cognoms» <span class="hint">(format d'iEduca)</span></span></label>
+        <label class="check"><input type="checkbox" id="speaker"> <span>Marca un portaveu per grup <span class="hint">(el primer de la llista)</span></span></label>
+        <label class="check"><input type="checkbox" id="sortIn"> <span>Ordena alfabèticament dins de cada grup</span></label>
+      </div>
+    </details>
+
     <div class="privacy">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true" style="flex:none;margin-top:2px"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
       <span>Els noms només existeixen en aquesta pestanya. No es desen ni s'envien enlloc: en tancar-la, desapareixen.</span>
@@ -346,38 +379,6 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
       </div>
     </details>
 
-    <details open>
-      <summary>Presentació</summary>
-      <div class="stack">
-        <div>
-          <label for="title">Títol</label>
-          <input type="text" id="title" value="Grups de treball">
-        </div>
-        <div class="grid2">
-          <div>
-            <label for="naming">Nom dels grups</label>
-            <select id="naming">
-              <option value="num">Grup 1, 2, 3…</option>
-              <option value="letter">Grup A, B, C…</option>
-              <option value="instr">Instruments</option>
-              <option value="notes">Notes musicals</option>
-              <option value="colors">Colors</option>
-            </select>
-          </div>
-          <div>
-            <label for="format">Noms de l'alumnat</label>
-            <select id="format">
-              <option value="full">Complets</option>
-              <option value="initial">Nom + inicial</option>
-              <option value="first">Només el nom</option>
-            </select>
-          </div>
-        </div>
-        <label class="check"><input type="checkbox" id="flip" checked> <span>Gira «Cognoms, Nom» a «Nom Cognoms» <span class="hint">(format d'iEduca)</span></span></label>
-        <label class="check"><input type="checkbox" id="speaker"> <span>Marca un portaveu per grup <span class="hint">(el primer de la llista)</span></span></label>
-        <label class="check"><input type="checkbox" id="sortIn"> <span>Ordena alfabèticament dins de cada grup</span></label>
-      </div>
-    </details>
   </aside>
 
   <main>
@@ -1003,15 +1004,34 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     const nameW = PW - 2 * M - numW - colW * shown.length;
     const RH = 7.2;
     const title = els.title.value.trim() || "Observació d'aula";
+    const fmtD = d => d ? d.split("-").reverse().join("/") : "";
+    let actTitle, actDate;
+    if (shown.length === 1) {
+      const a = acts[shown[0]];
+      actTitle = a.name || "Activitat sense títol";
+      actDate = fmtD(a.date) || today();
+    } else {
+      actTitle = `Observació d'aula · ${shown.length} activitats`;
+      const ds = Array.from(new Set(shown.map(k => acts[k].date).filter(Boolean))).sort();
+      actDate = ds.length ? (ds.length > 1 ? fmtD(ds[0]) + " – " + fmtD(ds[ds.length - 1]) : fmtD(ds[0])) : today();
+    }
     let page = 1;
     const header = first => {
       let y = M;
       if (first) {
-        doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor("#16203a");
-        doc.text("Qualificacions · " + title, M, y + 5);
+        // Activitat i data ben visibles
+        doc.setFillColor("#16a34a"); doc.rect(M, y, 2.2, 21, "F");
+        doc.setFont("helvetica", "bold"); doc.setFontSize(22); doc.setTextColor("#16203a");
+        const big = doc.splitTextToSize(actTitle, PW - 2 * M - 8)[0];
+        doc.text(big, M + 6, y + 8.5);
+        doc.setFont("helvetica", "bold"); doc.setFontSize(14); doc.setTextColor("#16a34a");
+        doc.text(actDate, M + 6, y + 17);
         doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor("#5d6680");
-        doc.text(`Ordre alfabètic per cognoms · AE = 4 · AN = 3 · AS = 2 · NA = 1 · Absent = buit · ${state.names.length} alumnes · ${today()}`, M, y + 11);
-        y += 17;
+        doc.text(`${title} · ${state.names.length} alumnes · Ordre alfabètic per cognoms · AE = 4 · AN = 3 · AS = 2 · NA = 1 · Absent = buit`, M, y + 28);
+        y += 34;
+      } else {
+        doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor("#16203a");
+        doc.text(`${actTitle} · ${actDate}`, M, y + 4); y += 8;
       }
       const hLines = shown.map(k => doc.splitTextToSize(actHeader(acts[k]), colW - 2));
       const hh = Math.max(7, Math.max(...hLines.map(l => l.length)) * 3.6 + 3);
