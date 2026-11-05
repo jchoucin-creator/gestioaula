@@ -1,8 +1,8 @@
-# Creador de grups
+# Tauler d'aula
 
 Eina web per fer grups d'alumnes a l'atzar a partir d'una llista copiada de Google Sheets, situar-los en un plànol d'aula i recollir-ne observacions amb un semàfor. Els grups surten equilibrats i es poden retocar a mà. Després es poden descarregar en una imatge o en un PDF per imprimir.
 
-👉 **Fes-la servir aquí:** **https://jchoucin-creator.github.io/gestioaula/creador-grups/**
+👉 **Fes-la servir aquí:** **https://jchoucin-creator.github.io/gestioaula/tauler-aula/**
 
 ---
 
@@ -180,13 +180,15 @@ Els codis **no apareixen mai** a les targetes dels grups, a la imatge ni al PDF.
 
 ## Publicar-la a GitHub Pages
 
-L'eina és a la carpeta `creador-grups/` del repositori [`gestioaula`](https://github.com/jchoucin-creator/gestioaula).
+L'eina és a la carpeta `tauler-aula/` del repositori [`gestioaula`](https://github.com/jchoucin-creator/gestioaula).
 
 1. Activa GitHub Pages una sola vegada: **Settings → Pages**. A *Branch*, tria `main` i la carpeta `/ (root)`, i fes **Save**.
 2. Cada eina del repositori té la seva carpeta, amb un `index.html` i un `README.md`.
 3. Cada carpeta es publica a `https://jchoucin-creator.github.io/gestioaula/NOM-DE-LA-CARPETA/`.
 
 No cal instal·lar res: cada eina és un sol fitxer HTML.
+
+L'eina abans es deia *Creador de grups*. L'adreça antiga (`/gestioaula/creador-grups/`) redirigeix automàticament a la nova.
 
 ---
 
