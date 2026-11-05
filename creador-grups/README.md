@@ -43,10 +43,8 @@ Cada nom porta un número d'ordre dins del grup. Si actives **Marca un portaveu 
 
 | Botó | Resultat |
 |---|---|
-| **Descarrega imatge** | Un PNG amb fons blanc |
-| **PDF per imprimir** | Un PDF en mida A4 |
-| **Veure la imatge** | Obre la imatge en gran. Amb clic dret (o mantenint-la premuda al mòbil) es pot desar o copiar |
-| **Copia per a Sheets** | Copia els grups en columnes, per enganxar-los a Google Sheets |
+| **Desa o imprimeix** | Mostra la imatge dels grups (o del plànol) i permet **desar-la** en PNG o generar un **PDF per imprimir** en A4 |
+| **Copia notes per a Sheets** | Obre la revisió de les notes de l'observació (vegeu més avall) |
 | **Pantalla completa** | Mostra els grups en gran, per projectar-los |
 
 ---
@@ -95,7 +93,9 @@ Mentre l'observació està activa, tocar un nom serveix per valorar-lo. Per mour
   |---|---|---|---|---|---|
   | Nota | 4 | 3 | 2 | 1 | *(cel·la buida)* |
 
-  A Google Sheets, clica la cel·la de la nota del primer alumne i enganxa. Cal que la llista del full també estigui en ordre alfabètic per cognoms.
+  A Google Sheets, clica la cel·la de la nota del primer alumne i enganxa.
+
+  Des de la mateixa revisió, **Imprimeix (PDF)** genera la llista d'alumnes amb el nivell i la nota de l'activitat triada, per arxivar-la o imprimir-la. Cal que la llista del full també estigui en ordre alfabètic per cognoms.
 - A l'Excel, les files poden anar en **ordre alfabètic per cognoms** o en **el mateix ordre que la llista enganxada**. Si copies la llista des del teu llibre de notes i tries aquesta segona opció, les files coincidiran exactament amb les del llibre.
 - Si enganxes també la columna del **NIA**, apareix a l'Excel com a primera columna. No es mostra mai a la pantalla.
 - Columnes: `NIA` (si n'hi ha) · `Alumne` · `Grup` · una columna per activitat amb `AE`, `AN`, `AS`, `NA` o `Absent`.

@@ -383,16 +383,11 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
         </button>
       </div>
       <div class="actions">
-        <button type="button" class="btn small" id="dlPng" hidden>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
-          Descarrega imatge
-        </button>
-        <button type="button" class="btn small" id="dlPdf" hidden>
+        <button type="button" class="btn small" id="viewImg">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg>
-          PDF per imprimir
+          Desa o imprimeix
         </button>
-        <button type="button" class="btn small" id="viewImg">Veure la imatge</button>
-        <button type="button" class="btn small" id="copyTxt">Copia per a Sheets</button>
+        <button type="button" class="btn small" id="copyTxt">Copia notes per a Sheets</button>
         <button type="button" class="btn small" id="full">Pantalla completa</button>
       </div>
       <div class="status" id="status" role="status" aria-live="polite"></div>
@@ -432,6 +427,10 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     <p class="scale">Es copien <b>només les notes</b>, una per fila, en el mateix ordre. A Google Sheets, clica la cel·la de la nota del primer alumne de la llista i enganxa (Cmd+V / Ctrl+V).</p>
     <div class="row" style="justify-content:flex-end;flex-wrap:wrap">
       <button type="button" class="btn small" id="cClose">Tanca</button>
+      <button type="button" class="btn small needs-dl" id="cPrint" hidden>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg>
+        Imprimeix (PDF)
+      </button>
       <button type="button" class="btn primary" id="cCopy" style="font-size:15px;padding:10px 16px">Copia les notes</button>
     </div>
   </div>
@@ -440,8 +439,18 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
 <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Imatge dels grups">
   <div class="overlay-box">
     <img id="overlayImg" alt="Imatge dels grups">
-    <p>Clic dret (o mantén premut al mòbil) sobre la imatge per desar-la o copiar-la.</p>
-    <div class="row" style="justify-content:flex-end"><button type="button" class="btn small" id="closeOverlay">Tanca</button></div>
+    <p id="imgHint">També pots fer clic dret (o mantenir premut al mòbil) sobre la imatge per desar-la o copiar-la.</p>
+    <div class="row" style="justify-content:flex-end;flex-wrap:wrap">
+      <button type="button" class="btn small" id="closeOverlay">Tanca</button>
+      <button type="button" class="btn small needs-dl" id="dlPng" hidden>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+        Desa la imatge
+      </button>
+      <button type="button" class="btn primary needs-dl" id="dlPdf" hidden style="font-size:15px;padding:10px 16px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg>
+        PDF per imprimir
+      </button>
+    </div>
   </div>
 </div>
 
@@ -913,6 +922,65 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     cModal.classList.add("open"); $("cCopy").focus();
   };
   $("cAct").addEventListener("change", renderCopyTable);
+  $("cPrint").onclick = async () => {
+    if (!window.jspdf) { flash("El generador de PDF no s'ha carregat. Torna-ho a provar en uns segons."); return; }
+    const acts = allActs(), sel = $("cAct").value;
+    const shown = sel === "all" ? acts.map((a, k) => k) : [+sel];
+    const doc = new window.jspdf.jsPDF({ unit: "mm", format: "a4", orientation: shown.length > 4 ? "landscape" : "portrait" });
+    const PW = doc.internal.pageSize.getWidth(), PH = doc.internal.pageSize.getHeight(), M = 14;
+    const numW = 9, colW = Math.min(30, Math.max(18, (PW - 2 * M - numW - 70) / shown.length));
+    const nameW = PW - 2 * M - numW - colW * shown.length;
+    const RH = 7.2;
+    const title = els.title.value.trim() || "Observació d'aula";
+    let page = 1;
+    const header = first => {
+      let y = M;
+      if (first) {
+        doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor("#16203a");
+        doc.text("Qualificacions · " + title, M, y + 5);
+        doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor("#5d6680");
+        doc.text(`Ordre alfabètic per cognoms · AE = 4 · AN = 3 · AS = 2 · NA = 1 · Absent = buit · ${state.names.length} alumnes · ${today()}`, M, y + 11);
+        y += 17;
+      }
+      const hLines = shown.map(k => doc.splitTextToSize(actHeader(acts[k]), colW - 2));
+      const hh = Math.max(7, Math.max(...hLines.map(l => l.length)) * 3.6 + 3);
+      doc.setFillColor("#eef1f7"); doc.rect(M, y, PW - 2 * M, hh, "F");
+      doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); doc.setTextColor("#5d6680");
+      doc.text("#", M + 2, y + 4.8); doc.text("Alumne", M + numW, y + 4.8);
+      hLines.forEach((l, c) => doc.text(l, M + numW + nameW + c * colW + 1, y + 4.8));
+      return y + hh;
+    };
+    let y = header(true);
+    alphaOrder().forEach((i, n) => {
+      if (y + RH > PH - M) {
+        doc.setFontSize(8); doc.setTextColor("#9aa2b8"); doc.text("Pàgina " + page, PW - M, PH - 6, { align: "right" });
+        doc.addPage(); page++; y = header(false);
+      }
+      if (n % 2) { doc.setFillColor("#f7f8fb"); doc.rect(M, y, PW - 2 * M, RH, "F"); }
+      doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); doc.setTextColor("#9aa2b8");
+      doc.text(String(n + 1), M + 2, y + 4.9);
+      doc.setTextColor("#16203a");
+      let nm = state.names[i];
+      while (doc.getTextWidth(nm) > nameW - 3 && nm.length > 2) nm = nm.slice(0, -2) + "…";
+      doc.text(nm, M + numW, y + 4.9);
+      shown.forEach((k, c) => {
+        const v = acts[k].ratings[keyOf(i)] || "AE", x = M + numW + nameW + c * colW + 1;
+        if (v === "ABS") {
+          doc.setDrawColor("#b8bfd0"); doc.setLineDashPattern([0.8, 0.8], 0); doc.roundedRect(x, y + 1.2, 15, 4.8, 1, 1, "S"); doc.setLineDashPattern([], 0);
+          doc.setFont("helvetica", "bold"); doc.setFontSize(7.5); doc.setTextColor("#5d6680"); doc.text("Absent", x + 7.5, y + 4.6, { align: "center" });
+        } else {
+          doc.setFillColor(LV[v].color); doc.roundedRect(x, y + 1.2, 9, 4.8, 1, 1, "F");
+          doc.setFont("helvetica", "bold"); doc.setFontSize(7.5); doc.setTextColor("#ffffff"); doc.text(v, x + 4.5, y + 4.6, { align: "center" });
+          doc.setFontSize(10.5); doc.setTextColor("#16203a"); doc.text(String(NUM[v]), x + 11.5, y + 4.9);
+        }
+      });
+      doc.setDrawColor("#e3e7f0"); doc.setLineWidth(0.2); doc.line(M, y + RH, PW - M, y + RH);
+      y += RH;
+    });
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor("#9aa2b8"); doc.text("Pàgina " + page, PW - M, PH - 6, { align: "right" });
+    const name = sel === "all" ? "totes" : (acts[+sel].name || "activitat").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^\w]+/g, "-").toLowerCase();
+    await save(`notes-${name}-${fileBase()}.pdf`, doc.output("arraybuffer"));
+  };
   $("cClose").onclick = () => cModal.classList.remove("open");
   cModal.addEventListener("click", e => { if (e.target === cModal) cModal.classList.remove("open"); });
   $("cCopy").onclick = async () => {
@@ -1209,10 +1277,12 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
   }
   $("dlPng").onclick = async () => {
     if (!state.groups.length) return;
+    closeOverlay();
     const cv = await drawImage(); save(fileBase() + ".png", await toBlob(cv));
   };
   $("dlPdf").onclick = async () => {
     if (!state.groups.length) return;
+    closeOverlay();
     if (!window.jspdf) { flash("El generador de PDF no s'ha carregat. Descarrega la imatge."); return; }
     const cv = await drawImage();
     const land = cv.width >= cv.height;
@@ -1234,15 +1304,7 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
   $("closeOverlay").onclick = closeOverlay;
   overlay.addEventListener("click", e => { if (e.target === overlay) closeOverlay(); });
 
-  $("copyTxt").onclick = async () => {
-    if (!state.groups.length) return;
-    const lists = state.groups.map((_, gi) => membersOf(gi).map(i => display(state.names[i])));
-    const max = Math.max(...lists.map(l => l.length));
-    const rows = [state.groups.map((_, gi) => groupName(gi)).join("\t")];
-    for (let r = 0; r < max; r++) rows.push(lists.map(l => l[r] || "").join("\t"));
-    try { await navigator.clipboard.writeText(rows.join("\n")); flash("Copiat: enganxa-ho a Google Sheets"); }
-    catch (e) { flash("No s'ha pogut copiar"); }
-  };
+  $("copyTxt").onclick = () => $("obsCopy").onclick();
   $("full").onclick = async () => {
     try {
       if (document.fullscreenElement) await document.exitFullscreen();
@@ -1258,10 +1320,10 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
 
   if (window.claude && typeof window.claude.use === "function") {
     window.claude.use("downloads").then(d => {
-      if (d) { downloads = d; $("dlPng").hidden = false; $("dlPdf").hidden = false; $("xlsxBtn").hidden = false; }
+      if (d) { downloads = d; document.querySelectorAll(".needs-dl, #xlsxBtn").forEach(b => { b.hidden = false; }); }
     }).catch(() => {});
   } else {
-    $("dlPng").hidden = false; $("dlPdf").hidden = false; $("xlsxBtn").hidden = false;
+    document.querySelectorAll(".needs-dl, #xlsxBtn").forEach(b => { b.hidden = false; });
   }
 })();
 </script>
