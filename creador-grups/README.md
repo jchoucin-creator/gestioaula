@@ -89,8 +89,14 @@ Mentre l'observació està activa, tocar un nom serveix per valorar-lo. Per mour
 ### Exportar
 
 - **Descarrega Excel** genera un fitxer `.xlsx` amb una fila per alumne i una columna per activitat (`Nom de l'activitat (dd/mm/aaaa)`).
-- **Copia per a Sheets** copia la mateixa taula per enganxar-la directament en un full.
-- Les files poden anar en **ordre alfabètic per cognoms** o en **el mateix ordre que la llista enganxada**. Si copies la llista des del teu llibre de notes i tries aquesta segona opció, les files coincidiran exactament amb les del llibre.
+- **Copia notes per a Sheets** obre primer una **revisió**: la llista d'alumnes en ordre alfabètic per cognoms amb la nota de cada un. Tries l'activitat (o totes) i prems **Copia les notes**. Es copien **només les notes, en format numèric**, una per fila:
+
+  | Nivell | AE | AN | AS | NA | Absent |
+  |---|---|---|---|---|---|
+  | Nota | 4 | 3 | 2 | 1 | *(cel·la buida)* |
+
+  A Google Sheets, clica la cel·la de la nota del primer alumne i enganxa. Cal que la llista del full també estigui en ordre alfabètic per cognoms.
+- A l'Excel, les files poden anar en **ordre alfabètic per cognoms** o en **el mateix ordre que la llista enganxada**. Si copies la llista des del teu llibre de notes i tries aquesta segona opció, les files coincidiran exactament amb les del llibre.
 - Si enganxes també la columna del **NIA**, apareix a l'Excel com a primera columna. No es mostra mai a la pantalla.
 - Columnes: `NIA` (si n'hi ha) · `Alumne` · `Grup` · una columna per activitat amb `AE`, `AN`, `AS`, `NA` o `Absent`.
 

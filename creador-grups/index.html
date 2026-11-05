@@ -177,6 +177,20 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
 .acts li span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .acts li button { border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 2px 4px; border-radius: 5px; }
 .acts li button:hover { color: #c2410c; background: color-mix(in srgb, #c2410c 10%, transparent); }
+.cmodal .overlay-box { width: min(720px, 100%); }
+.cmodal h3 { margin: 0; font-family: var(--display); font-size: 22px; }
+.cmodal .ctop { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; justify-content: space-between; }
+.cmodal .ctop > div { min-width: 220px; flex: 1; }
+.ctable-wrap { overflow: auto; max-height: 55vh; border: 1px solid var(--line); border-radius: 10px; }
+.ctable { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.ctable th { position: sticky; top: 0; background: var(--paper); text-align: left; padding: 7px 10px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); }
+.ctable td { padding: 5px 10px; border-bottom: 1px solid var(--line); }
+.ctable td.n { color: var(--muted); width: 2.5em; }
+.ctable .g { display: inline-flex; gap: 6px; align-items: center; }
+.ctable .g i { font-style: normal; font-weight: 700; font-size: 12px; color: #fff; background: var(--lv); border-radius: 5px; padding: 1px 6px; min-width: 30px; text-align: center; }
+.ctable .g b { font-size: 15px; min-width: 1ch; }
+.ctable .g.ABS i { background: var(--panel); color: var(--muted); border: 1px dashed var(--line); }
+.cmodal .scale { font-size: 13px; color: var(--muted); margin: 0; }
 .obs-off .obs-only { opacity: .45; pointer-events: none; }
 
 /* Plànol d'aula */
@@ -291,7 +305,7 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
         </div>
         <div class="grid2">
           <button type="button" class="btn small" id="xlsxBtn" hidden>Descarrega Excel</button>
-          <button type="button" class="btn small" id="obsCopy">Copia per a Sheets</button>
+          <button type="button" class="btn small" id="obsCopy">Copia notes per a Sheets</button>
         </div>
         <p class="hint" style="margin:0">Les observacions no es desen enlloc. Exporta-les abans de tancar la pestanya. Els colors no surten a la imatge ni al PDF.</p>
       </div>
@@ -401,6 +415,27 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
 </div>
 
 <div class="pop" id="pop" role="menu" aria-label="Valoració"></div>
+
+<div class="overlay cmodal" id="copyModal" role="dialog" aria-modal="true" aria-labelledby="cTitle">
+  <div class="overlay-box">
+    <div class="ctop">
+      <div>
+        <h3 id="cTitle">Revisa les notes abans de copiar</h3>
+        <p class="scale">Ordre alfabètic per cognoms · AE = 4 · AN = 3 · AS = 2 · NA = 1 · Absent = cel·la buida</p>
+      </div>
+      <div style="flex:0 1 260px">
+        <label for="cAct">Activitat que es copia</label>
+        <select id="cAct"></select>
+      </div>
+    </div>
+    <div class="ctable-wrap"><table class="ctable" id="cTable"></table></div>
+    <p class="scale">Es copien <b>només les notes</b>, una per fila, en el mateix ordre. A Google Sheets, clica la cel·la de la nota del primer alumne de la llista i enganxa (Cmd+V / Ctrl+V).</p>
+    <div class="row" style="justify-content:flex-end;flex-wrap:wrap">
+      <button type="button" class="btn small" id="cClose">Tanca</button>
+      <button type="button" class="btn primary" id="cCopy" style="font-size:15px;padding:10px 16px">Copia les notes</button>
+    </div>
+  </div>
+</div>
 
 <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Imatge dels grups">
   <div class="overlay-box">
@@ -850,11 +885,45 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     const ok = await save("observacio-" + fileBase() + ".xlsx", buf);
     if (ok) state.dirty = false;
   };
-  $("obsCopy").onclick = async () => {
-    const { header, rows, nActs } = exportRows();
-    if (!nActs) { flash("Encara no hi ha cap observació. Activa «Observació» a dalt."); return; }
-    try { await navigator.clipboard.writeText([header].concat(rows).map(r => r.join("\t")).join("\n")); state.dirty = false; flash("Copiat: enganxa-ho a Google Sheets"); }
-    catch (e) { flash("No s'ha pogut copiar"); }
+  // Còpia per a Sheets: previsualització i només notes numèriques
+  const NUM = { AE: 4, AN: 3, AS: 2, NA: 1, ABS: "" };
+  const cModal = $("copyModal");
+  function allActs() { const a = state.acts.slice(); if (state.obsStarted) a.push(snapshot()); return a; }
+  function alphaOrder() { return state.names.map((_, i) => i).sort((a, b) => state.names[a].localeCompare(state.names[b], "ca", { sensitivity: "base" })); }
+  function renderCopyTable() {
+    const acts = allActs(), sel = $("cAct").value;
+    const shown = sel === "all" ? acts.map((a, k) => k) : [+sel];
+    const head = `<tr><th>#</th><th>Alumne</th>${shown.map(k => `<th>${esc(actHeader(acts[k]))}</th>`).join("")}</tr>`;
+    const body = alphaOrder().map((i, n) => `<tr><td class="n">${n + 1}</td><td>${esc(state.names[i])}</td>${shown.map(k => {
+      const v = acts[k].ratings[keyOf(i)] || "AE", l = LV[v];
+      return `<td><span class="g ${v}" style="--lv:${l.color}"><i>${l.label}</i><b>${NUM[v]}</b></span></td>`;
+    }).join("")}</tr>`).join("");
+    $("cTable").innerHTML = head + body;
+    const nc = shown.length;
+    $("cCopy").textContent = nc > 1 ? `Copia les notes (${nc} columnes)` : "Copia les notes";
+  }
+  $("obsCopy").onclick = () => {
+    const acts = allActs();
+    if (!acts.length) { flash("Encara no hi ha cap observació. Activa «Observació» a dalt."); return; }
+    const opts = acts.map((a, k) => `<option value="${k}">${esc(actHeader(a))}</option>`);
+    if (acts.length > 1) opts.push('<option value="all">Totes (una columna per activitat)</option>');
+    $("cAct").innerHTML = opts.join("");
+    $("cAct").value = String(acts.length - 1);
+    renderCopyTable(); closePop();
+    cModal.classList.add("open"); $("cCopy").focus();
+  };
+  $("cAct").addEventListener("change", renderCopyTable);
+  $("cClose").onclick = () => cModal.classList.remove("open");
+  cModal.addEventListener("click", e => { if (e.target === cModal) cModal.classList.remove("open"); });
+  $("cCopy").onclick = async () => {
+    const acts = allActs(), sel = $("cAct").value;
+    const shown = sel === "all" ? acts.map((a, k) => k) : [+sel];
+    const text = alphaOrder().map(i => shown.map(k => NUM[acts[k].ratings[keyOf(i)] || "AE"]).join("\t")).join("\n");
+    try {
+      await navigator.clipboard.writeText(text);
+      state.dirty = false; cModal.classList.remove("open");
+      flash(`Copiades ${state.names.length} notes: enganxa-les a Google Sheets`);
+    } catch (e) { flash("No s'ha pogut copiar"); }
   };
   window.addEventListener("beforeunload", e => { if (state.dirty) { e.preventDefault(); e.returnValue = ""; } });
 
@@ -923,7 +992,7 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("chip")) { e.preventDefault(); e.target.click(); }
   });
   document.addEventListener("keydown", e => {
-    if (e.key === "Escape") { closePop(); if (state.selected !== null) { state.selected = null; render(); } closeOverlay(); }
+    if (e.key === "Escape") { closePop(); cModal.classList.remove("open"); if (state.selected !== null) { state.selected = null; render(); } closeOverlay(); }
   });
   let dragIdx = null;
   els.groups.addEventListener("dragstart", e => {
