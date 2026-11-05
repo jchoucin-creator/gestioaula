@@ -118,10 +118,20 @@ Pots indicar que algunes persones **no coincideixin** en el mateix grup o que **
 |---|---|
 | `S` + número (`S1`, `S2`, `S3`…) | **Separar**: les persones amb el mateix codi aniran a grups diferents |
 | `J` + número (`J1`, `J2`, `J3`…) | **Junts**: les persones amb el mateix codi aniran al mateix grup |
+| `V` + número (`V1`, `V2`, `V3`…) | **Veu o categoria**: per exemple, `V1` veus agudes i `V2` veus greus |
+
+### Veus (codi V)
+
+Quan la llista té codis `V`, apareix el selector **Veus** a la barra lateral, amb dues opcions:
+
+- **Grups barrejats, amb les veus repartides**: cada grup té una proporció semblant de cada veu.
+- **Grups separats per veu**: cada grup només té alumnes d'una veu. Els grups es reparteixen entre les veus segons quants alumnes hi ha a cada una (com a mínim un grup per veu). Amb *Persones per grup*, la mida s'aplica dins de cada veu.
+
+Cada persona té **una sola** veu. Els codis `S` i `J` continuen funcionant alhora: `V1 S1` vol dir veu aguda i separat dels altres `S1`. En mode separat, una unió `J` entre veus diferents no es pot complir i l'eina ho avisa.
 
 ### Normes
 
-- Cada codi és **una lletra (S o J) seguida d'un número**, sense res més.
+- Cada codi és **una lletra (S, J o V) seguida d'un número**, sense res més.
 - Cada codi és un conjunt independent: `S1` i `S2` no tenen cap relació, i `S1` i `J1` tampoc.
 - Si una persona té més d'una condició, posa els codis a la **mateixa cel·la** separats per un espai: `S1 J2`.
 - És igual si escrius majúscules o minúscules.

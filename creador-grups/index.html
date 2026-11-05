@@ -277,6 +277,14 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
       </select>
     </div>
 
+    <div id="voiceWrap" hidden>
+      <label for="voiceMode">Veus (codi V)</label>
+      <select id="voiceMode">
+        <option value="mix">Grups barrejats, amb les veus repartides</option>
+        <option value="split">Grups separats per veu</option>
+      </select>
+    </div>
+
     <button type="button" class="btn primary" id="shuffle">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg>
       Fes els grups
@@ -319,8 +327,10 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
           <tr><th>Codi</th><th>Vol dir</th></tr>
           <tr><td><code>S1</code></td><td>Separar de tots els que tenen <code>S1</code></td></tr>
           <tr><td><code>J1</code></td><td>Junts amb tots els que tenen <code>J1</code></td></tr>
+          <tr><td><code>V1</code></td><td>Veu o categoria (per exemple, <code>V1</code> aguda, <code>V2</code> greu)</td></tr>
         </table>
-        <p><b>S</b> = separar, <b>J</b> = junts, sempre seguit d'un número. Cada número és un conjunt diferent: <code>S1</code> i <code>S2</code> no tenen res a veure.</p>
+        <p>Amb codis <b>V</b> apareix el selector <b>Veus</b>: grups barrejats amb les veus repartides, o grups separats per veu. Cada persona té una sola veu.</p>
+        <p><b>S</b> = separar, <b>J</b> = junts, <b>V</b> = veu, sempre seguit d'un número. Cada número és un conjunt diferent: <code>S1</code> i <code>S2</code> no tenen res a veure.</p>
         <p>Diversos codis a la mateixa cel·la, separats per un espai: <code>S1 S3 J2</code>.</p>
         <table>
           <tr><th>Nom</th><th>Codi</th></tr>
@@ -480,17 +490,18 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     const names = [], cond = [], nias = [], bad = new Set();
     text.split(/\r?\n/).forEach(line => {
       const cells = line.split(/\t|\|/).map(c => c.trim()).filter(Boolean);
-      const parts = [], c = { sep: [], join: [] };
+      const parts = [], c = { sep: [], join: [], voice: "" };
       let nia = "";
       cells.forEach(cell => {
         if (/^\d+$/.test(cell)) { if (!nia && cell.length >= 4) nia = cell; return; }   // NIA: no es mostra
-        const norm = cell.replace(/\b([sj])\s+(\d+)\b/gi, "$1$2");
+        const norm = cell.replace(/\b([sjv])\s+(\d+)\b/gi, "$1$2");
         const toks = norm.split(/[\s,;]+/).filter(Boolean);
         if (toks.length && toks.every(t => /^[a-z]+\d+$/i.test(t))) {
           toks.forEach(t => {
             const u = t.toUpperCase();
             if (/^S\d+$/.test(u)) { if (!c.sep.includes(u)) c.sep.push(u); }
             else if (/^J\d+$/.test(u)) { if (!c.join.includes(u)) c.join.push(u); }
+            else if (/^V\d+$/.test(u)) { if (!c.voice) c.voice = u; else if (c.voice !== u) bad.add(t + " (dues veus)"); }
             else bad.add(t);
           });
         } else parts.push(cell);
@@ -551,11 +562,14 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     shuffled(Array.from({ length: n }, (_, i) => i)).slice(0, extra).forEach(i => s[i]++);
     return s;
   }
-  function assign(n) {
-    const N = state.names.length, units = buildUnits();
+  const hasVoices = () => state.cond.some(c => c.voice);
+  const voiceMode = () => document.getElementById("voiceMode").value;
+  const byNumCa = (a, b) => a.localeCompare(b, "ca", { numeric: true });
+  function assign(n, units, N, balance) {
+    n = Math.max(1, Math.min(n, N));
     let best = null, bestV = Infinity;
     for (let attempt = 0; attempt < 600 && bestV > 0; attempt++) {
-      const cap = sizesFor(n, N), groups = cap.map(() => []), gsep = cap.map(() => new Set());
+      const cap = sizesFor(n, N), groups = cap.map(() => []), gsep = cap.map(() => new Set()), gvoc = cap.map(() => ({}));
       const order = shuffled(units).sort((a, b) => (b.members.length * 100 + b.sep.size) - (a.members.length * 100 + a.sep.size));
       let v = 0;
       for (const u of order) {
@@ -568,17 +582,56 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
           if (fit.length) { const m = Math.min(...fit.map(clash)); cand = fit.filter(g => clash(g) === m); v += m; }
           else { const r = Math.max(...all.map(room)); cand = all.filter(g => room(g) === r); v += 1000; }
         }
+        if (balance) {
+          // Repartiment equilibrat de veus: el grup amb menys alumnes de les veus d'aquesta unitat
+          const vs = u.members.map(i => state.cond[i].voice).filter(Boolean);
+          if (vs.length) {
+            const score = g => vs.reduce((t, x) => t + (gvoc[g][x] || 0) / cap[g], 0);
+            const m = Math.min(...cand.map(score));
+            cand = cand.filter(g => score(g) - m < 1e-9);
+          }
+        }
         const g = cand[rand(cand.length)];
         groups[g].push(...u.members); u.sep.forEach(x => gsep[g].add(x));
+        u.members.forEach(i => { const x = state.cond[i].voice; if (x) gvoc[g][x] = (gvoc[g][x] || 0) + 1; });
       }
       if (v < bestV) { bestV = v; best = groups; }
     }
     return best.map(g => shuffled(g));
   }
   function makeGroups() {
-    const n = groupCount();
-    state.groups = n ? assign(n).sort((a, b) => b.length - a.length) : [];
+    const n = groupCount(), N = state.names.length;
     state.selected = null; state.animate = true;
+    if (!n) { state.groups = []; return; }
+    const units = buildUnits();
+    const bySize = (a, b) => b.length - a.length;
+    if (hasVoices() && voiceMode() === "split") {
+      // Grups separats per veu: cada veu té els seus grups
+      const cats = {};
+      units.forEach(u => {
+        const vs = u.members.map(i => state.cond[i].voice || "—");
+        const top = vs.sort((a, b) => vs.filter(x => x === b).length - vs.filter(x => x === a).length)[0];
+        (cats[top] = cats[top] || []).push(u);
+      });
+      const keys = Object.keys(cats).sort((a, b) => a === "—" ? 1 : b === "—" ? -1 : byNumCa(a, b));
+      const sizes = keys.map(k => cats[k].reduce((t, u) => t + u.members.length, 0));
+      let counts;
+      if (state.mode === "size") {
+        const v = Math.max(1, parseInt(els.amount.value, 10) || 1);
+        counts = sizes.map(sz => els.rest.value === "smaller" ? Math.ceil(sz / v) : Math.max(1, Math.floor(sz / v)));
+      } else {
+        // Repartiment proporcional dels grups entre les veus (mínim un grup per veu)
+        const total = Math.max(n, keys.length);
+        counts = sizes.map(sz => Math.max(1, Math.floor(total * sz / N)));
+        const rem = sizes.map((sz, k) => total * sz / N - Math.floor(total * sz / N));
+        let left = total - counts.reduce((a, b) => a + b, 0);
+        keys.map((_, k) => k).sort((a, b) => rem[b] - rem[a]).forEach(k => { if (left > 0) { counts[k]++; left--; } });
+        while (left < 0) { const k = counts.indexOf(Math.max(...counts)); if (counts[k] <= 1) break; counts[k]--; left++; }
+      }
+      state.groups = keys.flatMap((k, c) => assign(counts[c], cats[k], sizes[c], false).sort(bySize));
+    } else {
+      state.groups = assign(n, units, N, hasVoices()).sort(bySize);
+    }
   }
 
   // Comprova les condicions sobre els grups actuals (també després de moure noms a mà)
@@ -586,7 +639,8 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     const sepL = {}, joinL = {};
     state.cond.forEach((c, i) => { c.sep.forEach(x => (sepL[x] = sepL[x] || []).push(i)); c.join.forEach(x => (joinL[x] = joinL[x] || []).push(i)); });
     const nS = Object.keys(sepL).length, nJ = Object.keys(joinL).length;
-    if (!nS && !nJ) return null;
+    const nV = new Set(state.cond.map(c => c.voice).filter(Boolean)).size;
+    if (!nS && !nJ && !nV) return null;
     const where = {}; state.groups.forEach((g, gi) => g.forEach(i => { where[i] = gi; }));
     const n = state.groups.length, N = state.names.length, maxSize = Math.ceil(N / n);
     const issues = [], impossible = [];
@@ -615,7 +669,20 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
       if (bad.length) issues.push(`<b>${x}</b> coincideix a ${bad.join(", ")}`);
       if (sepL[x].length > n) impossible.push(`<b>${x}</b> té ${sepL[x].length} persones i només hi ha ${n} grups`);
     });
-    return { nS, nJ, issues, impossible };
+    if (nV) {
+      const split = voiceMode() === "split";
+      state.groups.forEach((g, gi) => {
+        const vs = new Set(g.map(i => state.cond[i].voice || "sense veu"));
+        if (split && vs.size > 1) issues.push(`<b>Veus</b> barrejades a ${groupName(gi)}`);
+      });
+      if (split) buildUnits().forEach(u => {
+        const vs = new Set(u.members.map(i => state.cond[i].voice || "sense veu"));
+        if (vs.size > 1) impossible.push(`Una unió <b>J</b> ajunta persones de veus diferents (${Array.from(vs).sort(byNumCa).join(", ")})`);
+      });
+      const sinV = state.cond.filter(c => !c.voice).length;
+      if (sinV) impossible.push(`${sinV} ${sinV === 1 ? "persona no té" : "persones no tenen"} codi <b>V</b>`);
+    }
+    return { nS, nJ, nV, issues, impossible };
   }
   function groupName(i) {
     if (state.customNames[i]) return state.customNames[i];
@@ -645,6 +712,10 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     if (dup > 0) t += ` · <span class="warn">${dup} ${dup === 1 ? "repetit" : "repetits"}</span>`;
     const withCond = state.cond.filter(c => c.sep.length || c.join.length).length;
     if (withCond) t += ` · ${withCond} amb condicions`;
+    const vc = {}; state.cond.forEach(c => { if (c.voice) vc[c.voice] = (vc[c.voice] || 0) + 1; });
+    const vk = Object.keys(vc).sort(byNumCa);
+    if (vk.length) t += " · " + vk.map(k => `${k}: ${vc[k]}`).join(", ");
+    document.getElementById("voiceWrap").hidden = !vk.length;
     if (state.badCodes.length) t += ` · <span class="warn">codis no reconeguts: ${state.badCodes.map(x => x.replace(/[<>&]/g, "")).join(", ")}</span>`;
     els.countLine.innerHTML = t;
     const n = groupCount();
@@ -1012,7 +1083,8 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     const parts = [];
     if (r.nS) parts.push(`${r.nS} ${r.nS === 1 ? "separació" : "separacions"}`);
     if (r.nJ) parts.push(`${r.nJ} ${r.nJ === 1 ? "unió" : "unions"}`);
-    let h = `Condicions: ${parts.join(" i ")}. `;
+    if (r.nV) parts.push(`${r.nV} veus ${voiceMode() === "split" ? "en grups separats" : "repartides"}`);
+    let h = `Condicions: ${parts.length > 1 ? parts.slice(0, -1).join(", ") + " i " + parts[parts.length - 1] : parts[0]}. `;
     const list = r.impossible.concat(r.issues);
     if (!list.length) { h += '<span class="okc">✓ Totes es compleixen</span>'; box.className = "cond show ok"; }
     else {
@@ -1103,6 +1175,7 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
   $("plus").onclick = () => { els.amount.value = Math.min(99, (+els.amount.value || 0) + 1); regroup(); };
   els.amount.addEventListener("change", regroup);
   els.rest.addEventListener("change", regroup);
+  document.getElementById("voiceMode").addEventListener("change", () => { regroup(); flash(document.getElementById("voiceMode").value === "split" ? "Grups separats per veu" : "Grups barrejats amb les veus repartides"); });
   $("shuffle").onclick = () => { if (!state.names.length) { els.names.focus(); return; } regroup(); flash("Grups nous"); };
   let t;
   els.names.addEventListener("input", () => {
