@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root {
   /* Pla: tauler de control a l'esquerra, pissarra de grups a la dreta; cada grup té el seu color viu */
@@ -147,6 +148,55 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
 .empty { text-align: center; color: var(--muted); padding: 50px 10px; }
 .example-tag { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; background: #ffe7a3; color: #6b4b00; border-radius: 6px; padding: 2px 7px; vertical-align: middle; margin-left: 8px; }
 
+/* Vistes i observació */
+.views { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.vseg { display: inline-grid; grid-auto-flow: column; background: var(--panel); border: 1.5px solid var(--line); border-radius: 11px; padding: 3px; gap: 3px; }
+.vseg button { border: 0; background: transparent; font: inherit; font-size: 14px; font-weight: 700; color: var(--muted); padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+.vseg button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.btn.obs[aria-pressed="true"] { background: #16a34a; border-color: #16a34a; color: #fff; }
+.chip .lvl { margin-left: auto; flex: none; font-size: 12px; font-weight: 700; letter-spacing: .04em; border-radius: 6px; padding: 2px 7px; color: #fff; background: var(--lv); }
+.chip .star + .lvl { margin-left: 6px; }
+.chip.rated { background: color-mix(in srgb, var(--lv) 20%, var(--chip)); cursor: pointer; }
+.chip.r-ABS { background: var(--chip); border: 2px dashed var(--line); color: var(--muted); }
+.chip.r-ABS .lvl { background: var(--panel); color: var(--muted); border: 1px solid var(--line); }
+.gsem { display: flex; gap: 6px; padding: 0 12px 10px; align-items: center; flex-wrap: wrap; }
+.gsem span { font-size: 12px; color: var(--muted); margin-right: 2px; }
+.gsem button { font: inherit; font-size: 12px; font-weight: 700; border: 0; border-radius: 7px; padding: 4px 8px; color: #fff; cursor: pointer; background: var(--lv); }
+.gsem button:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.pop { position: fixed; z-index: 20; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 6px; display: none; gap: 5px; box-shadow: 0 10px 30px rgba(10,14,28,.25); }
+.pop.open { display: flex; }
+.pop button { font: inherit; font-weight: 700; font-size: 14px; min-width: 46px; padding: 9px 8px; border-radius: 9px; border: 2px solid transparent; cursor: pointer; background: var(--lv); color: #fff; }
+.pop button.ABS { background: #fff; color: #5d6680; border-color: #c9cfdd; }
+.pop button.cur { outline: 3px solid var(--ink); outline-offset: 1px; }
+.obs-panel .legend { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin: 4px 0 2px; }
+.obs-panel .legend div { text-align: center; border-radius: 8px; padding: 5px 2px; font-size: 12px; font-weight: 700; color: #fff; background: var(--lv); font-variant-numeric: tabular-nums; }
+.obs-panel .legend div b { display: block; font-size: 17px; }
+.obs-panel .legend div.ABS { background: var(--paper); color: var(--muted); border: 1.5px dashed var(--line); }
+.acts { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; font-size: 13px; }
+.acts li { display: flex; align-items: center; gap: 6px; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
+.acts li span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.acts li button { border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 2px 4px; border-radius: 5px; }
+.acts li button:hover { color: #c2410c; background: color-mix(in srgb, #c2410c 10%, transparent); }
+.obs-off .obs-only { opacity: .45; pointer-events: none; }
+
+/* Plànol d'aula */
+.groups.plan { display: block; position: relative; border-radius: 16px; background-color: var(--paper);
+  background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 32px 32px; background-position: -1px -1px; border: 1.5px solid var(--line); overflow: hidden; }
+.plan .bboard { position: absolute; left: 30%; width: 40%; top: 0; height: 30px; background: var(--ink); color: var(--panel); border-radius: 0 0 12px 12px; display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: 14px; letter-spacing: .12em; text-transform: uppercase; }
+.plan .desk { position: absolute; width: 15%; min-width: 110px; padding: 10px 8px; background: #e9e1d2; color: #5b4a2e; border: 1.5px solid #cdbf9f; border-radius: 10px; text-align: center; font-size: 13px; font-weight: 700; cursor: grab; user-select: none; touch-action: none; }
+.plan .card { position: absolute; width: var(--pw, 200px); box-shadow: 0 6px 18px rgba(10,14,28,.10); }
+.plan .card-head { cursor: grab; touch-action: none; padding: 8px 10px 6px; gap: 8px; }
+.plan .card.moving, .plan .desk.moving { cursor: grabbing; box-shadow: 0 14px 34px rgba(10,14,28,.25); z-index: 5; }
+.plan .badge { width: 26px; height: 26px; font-size: 14px; }
+.plan .gname { font-size: 16px; }
+.plan .members { gap: 4px; padding: 0 8px; }
+.plan .chip { font-size: 14px; padding: 5px 8px; gap: 6px; }
+.plan .chip .num { min-width: 20px; height: 20px; font-size: 11px; }
+.plan .gsem { padding: 0 8px 8px; gap: 4px; }
+.plan .gsem span { display: none; }
+.plan-tools[hidden] { display: none; }
+.plan-tools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
 .board:fullscreen { overflow: auto; border-radius: 0; padding: 40px 48px; }
 .board:fullscreen .groups { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 22px; }
 .board:fullscreen .chip { font-size: 22px; padding: 10px 14px; }
@@ -218,6 +268,35 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
       Fes els grups
     </button>
 
+    <details class="obs-panel obs-off" id="obsPanel">
+      <summary>Observació d'aula (semàfor)</summary>
+      <div class="stack">
+        <p class="hint" style="margin:0">Activa <b>Observació</b> a dalt. Tothom comença en <b>AE</b>. Posa el nivell a tot el grup amb els botons de la targeta i retoca cada alumne tocant-ne el nom.</p>
+        <div class="grid2 obs-only">
+          <div><label for="actName">Activitat</label><input type="text" id="actName" placeholder="p. ex. Assaig de flauta"></div>
+          <div><label for="actDate">Data</label><input type="date" id="actDate"></div>
+        </div>
+        <div class="legend obs-only" id="legend"></div>
+        <button type="button" class="btn small obs-only" id="actNew">Desa l'activitat i comença'n una altra</button>
+        <div>
+          <span class="lbl">Activitats desades</span>
+          <ul class="acts" id="actList"></ul>
+        </div>
+        <div>
+          <label for="order">Ordre de les files a l'Excel</label>
+          <select id="order">
+            <option value="alpha">Alfabètic (per cognoms)</option>
+            <option value="list">El mateix ordre que la llista enganxada</option>
+          </select>
+        </div>
+        <div class="grid2">
+          <button type="button" class="btn small" id="xlsxBtn" hidden>Descarrega Excel</button>
+          <button type="button" class="btn small" id="obsCopy">Copia per a Sheets</button>
+        </div>
+        <p class="hint" style="margin:0">Les observacions no es desen enlloc. Exporta-les abans de tancar la pestanya. Els colors no surten a la imatge ni al PDF.</p>
+      </div>
+    </details>
+
     <details>
       <summary>Separar i ajuntar alumnes</summary>
       <div class="help">
@@ -279,6 +358,16 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
 
   <main>
     <div class="toolbar">
+      <div class="views">
+        <div class="vseg" role="group" aria-label="Vista">
+          <button type="button" id="vGrid" aria-pressed="true">Grups</button>
+          <button type="button" id="vPlan" aria-pressed="false">Plànol d'aula</button>
+        </div>
+        <button type="button" class="btn small obs" id="obsToggle" aria-pressed="false">
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="3.2" fill="#ef4444"/><circle cx="12" cy="12" r="3.2" fill="#f59e0b"/><circle cx="12" cy="19" r="3.2" fill="#16a34a"/></svg>
+          Observació
+        </button>
+      </div>
       <div class="actions">
         <button type="button" class="btn small" id="dlPng" hidden>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
@@ -301,11 +390,17 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
         <div class="board-meta" id="boardMeta"></div>
       </div>
       <div class="groups" id="groups"></div>
+      <div class="plan-tools" id="planTools" hidden>
+        <button type="button" class="btn small" id="planReset">Reorganitza les taules</button>
+        <span class="tip">Arrossega cada grup per la capçalera i la taula del professor per situar-los com a l'aula. Si tornes a barrejar amb el mateix nombre de grups, les taules no es mouen.</span>
+      </div>
     </section>
 
     <p class="tip">Per retocar: arrossega un nom a un altre grup, o toca dos noms per intercanviar-los. Toca un nom i després un grup per moure'l. Clica el nom d'un grup per canviar-lo.</p>
   </main>
 </div>
+
+<div class="pop" id="pop" role="menu" aria-label="Valoració"></div>
 
 <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Imatge dels grups">
   <div class="overlay-box">
@@ -333,17 +428,18 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     groups: $("groups"), boardTitle: $("boardTitle"), boardMeta: $("boardMeta"), status: $("status"), board: $("board")
   };
 
-  const state = { mode: "count", names: [], cond: [], badCodes: [], groups: [], customNames: {}, isExample: true, selected: null, animate: true };
+  const state = { mode: "count", names: [], nia: [], cond: [], badCodes: [], view: "grid", pos: {}, desk: null, planN: 0, obs: false, obsStarted: false, cur: {}, acts: [], dirty: false, groups: [], customNames: {}, isExample: true, selected: null, animate: true };
 
   // ---------- Dades ----------
   // Codis de condició: S<número> = separar · J<número> = junts
   function parse(text) {
-    const names = [], cond = [], bad = new Set();
+    const names = [], cond = [], nias = [], bad = new Set();
     text.split(/\r?\n/).forEach(line => {
       const cells = line.split(/\t|\|/).map(c => c.trim()).filter(Boolean);
       const parts = [], c = { sep: [], join: [] };
+      let nia = "";
       cells.forEach(cell => {
-        if (/^\d+$/.test(cell)) return;                       // NIA o números: s'ignoren
+        if (/^\d+$/.test(cell)) { if (!nia && cell.length >= 4) nia = cell; return; }   // NIA: no es mostra
         const norm = cell.replace(/\b([sj])\s+(\d+)\b/gi, "$1$2");
         const toks = norm.split(/[\s,;]+/).filter(Boolean);
         if (toks.length && toks.every(t => /^[a-z]+\d+$/i.test(t))) {
@@ -356,13 +452,13 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
         } else parts.push(cell);
       });
       const name = parts.join(" ").replace(/\s+/g, " ").trim();
-      if (name) { names.push(name); cond.push(c); }
+      if (name) { names.push(name); cond.push(c); nias.push(nia); }
     });
-    return { names, cond, bad: Array.from(bad) };
+    return { names, cond, nias, bad: Array.from(bad) };
   }
   function applyParse(text) {
     const r = parse(text);
-    state.names = r.names; state.cond = r.cond; state.badCodes = r.bad;
+    state.names = r.names; state.cond = r.cond; state.nia = r.nias; state.badCodes = r.bad;
   }
   function display(raw) {
     let s = raw;
@@ -516,24 +612,46 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
       : `persones → ${n} grups ${sizes}`;
   }
 
-  function render() {
-    els.boardTitle.textContent = els.title.value.trim() || "Grups";
-    els.boardMeta.textContent = state.groups.length ? metaText() : "";
-    const wrap = els.groups; wrap.innerHTML = "";
-    if (!state.groups.length) {
-      wrap.innerHTML = '<div class="empty" style="grid-column:1/-1">Enganxa una llista de noms a l\'esquerra per començar.</div>';
-      return;
+  // ---------- Semàfor ----------
+  const LEVELS = [
+    { k: "AE", label: "AE", name: "Assoliment excel·lent", color: "#16a34a" },
+    { k: "AN", label: "AN", name: "Assoliment notable", color: "#7cb518" },
+    { k: "AS", label: "AS", name: "Assoliment satisfactori", color: "#f0a202" },
+    { k: "NA", label: "NA", name: "No assoliment", color: "#e5383b" },
+    { k: "ABS", label: "Absent", name: "Absent", color: "#ffffff" }
+  ];
+  const LV = Object.fromEntries(LEVELS.map(l => [l.k, l]));
+  const keyOf = i => state.nia[i] || state.names[i];
+  const ratingOf = i => state.cur[keyOf(i)] || "AE";
+  function setRating(i, k) { state.cur[keyOf(i)] = k; state.dirty = true; }
+
+  function chipEl(idx, pos, gi) {
+    const li = document.createElement("li");
+    const r = state.obs ? ratingOf(idx) : null;
+    li.className = "chip" + (state.animate ? " pop" : "") + (state.selected === idx ? " sel" : "") + (r ? " rated r-" + r : "");
+    if (r) li.style.setProperty("--lv", LV[r].color);
+    if (state.animate) li.style.animationDelay = (pos * 18 + gi * 30) + "ms";
+    li.draggable = true; li.tabIndex = 0; li.dataset.i = idx;
+    if (r) li.setAttribute("aria-label", display(state.names[idx]) + ": " + LV[r].name);
+    const num = document.createElement("span"); num.className = "num"; num.textContent = pos + 1;
+    li.append(num, document.createTextNode(display(state.names[idx])));
+    if (els.speaker.checked && pos === 0) {
+      const st = document.createElement("span"); st.className = "star"; st.textContent = "★ portaveu"; li.appendChild(st);
     }
-    let delay = 0;
-    state.groups.forEach((_, gi) => {
-      const card = document.createElement("article");
-      card.className = "card" + (state.selected !== null ? " target" : "");
-      card.style.setProperty("--c", colorOf(gi));
-      card.dataset.g = gi;
-      const members = membersOf(gi);
-      card.innerHTML = `<div class="card-head"><span class="badge">${gi + 1}</span><span class="gname" contenteditable="true" spellcheck="false" role="textbox" aria-label="Nom del grup ${gi + 1}"></span><span class="gcount">${members.length}</span></div><ul class="members"></ul>`;
-      const gname = card.querySelector(".gname");
-      gname.textContent = groupName(gi);
+    if (r) { const b = document.createElement("span"); b.className = "lvl"; b.textContent = LV[r].label; li.appendChild(b); }
+    return li;
+  }
+
+  function cardEl(gi, plan) {
+    const card = document.createElement("article");
+    card.className = "card" + (state.selected !== null ? " target" : "");
+    card.style.setProperty("--c", colorOf(gi));
+    card.dataset.g = gi;
+    const members = membersOf(gi);
+    card.innerHTML = `<div class="card-head"><span class="badge">${gi + 1}</span><span class="gname"${plan ? "" : ' contenteditable="true" spellcheck="false" role="textbox"'} aria-label="Nom del grup ${gi + 1}"></span><span class="gcount">${members.length}</span></div>`;
+    const gname = card.querySelector(".gname");
+    gname.textContent = groupName(gi);
+    if (!plan) {
       gname.addEventListener("click", e => e.stopPropagation());
       gname.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); gname.blur(); } });
       gname.addEventListener("blur", () => {
@@ -541,24 +659,215 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
         if (v && v !== groupName(gi)) state.customNames[gi] = v;
         if (!v) { delete state.customNames[gi]; gname.textContent = groupName(gi); }
       });
-      const ul = card.querySelector("ul");
-      members.forEach((idx, pos) => {
-        const li = document.createElement("li");
-        li.className = "chip" + (state.animate ? " pop" : "") + (state.selected === idx ? " sel" : "");
-        if (state.animate) li.style.animationDelay = (delay++ * 18) + "ms";
-        li.draggable = true; li.tabIndex = 0; li.dataset.i = idx;
-        const num = document.createElement("span"); num.className = "num"; num.textContent = pos + 1;
-        li.append(num, document.createTextNode(display(state.names[idx])));
-        if (els.speaker.checked && pos === 0) {
-          const s = document.createElement("span"); s.className = "star"; s.textContent = "★ portaveu"; li.appendChild(s);
-        }
-        ul.appendChild(li);
-      });
-      wrap.appendChild(card);
-    });
-    state.animate = false;
-    renderConditions();
+    }
+    if (state.obs) {
+      const sem = document.createElement("div"); sem.className = "gsem";
+      sem.innerHTML = "<span>Tot el grup:</span>" + LEVELS.filter(l => l.k !== "ABS")
+        .map(l => `<button type="button" data-set="${l.k}" style="--lv:${l.color}" title="${l.name} per a tot el grup (excepte absents)">${l.label}</button>`).join("");
+      card.appendChild(sem);
+    }
+    const ul = document.createElement("ul"); ul.className = "members";
+    members.forEach((idx, pos) => ul.appendChild(chipEl(idx, pos, gi)));
+    card.appendChild(ul);
+    return card;
   }
+
+  function render() {
+    els.boardTitle.textContent = els.title.value.trim() || "Grups";
+    els.boardMeta.textContent = state.groups.length ? metaText() : "";
+    const wrap = els.groups; wrap.innerHTML = "";
+    const plan = state.view === "plan";
+    wrap.classList.toggle("plan", plan);
+    $("planTools").hidden = !plan;
+    if (!state.groups.length) {
+      wrap.style.height = "";
+      wrap.innerHTML = '<div class="empty" style="grid-column:1/-1">Enganxa una llista de noms a l\'esquerra per començar.</div>';
+      renderObsPanel(); return;
+    }
+    if (plan) {
+      const bb = document.createElement("div"); bb.className = "bboard"; bb.textContent = "Pissarra"; wrap.appendChild(bb);
+      const desk = document.createElement("div"); desk.className = "desk"; desk.textContent = "Taula del professor"; desk.dataset.desk = "1"; wrap.appendChild(desk);
+    } else wrap.style.height = "";
+    state.groups.forEach((_, gi) => wrap.appendChild(cardEl(gi, plan)));
+    state.animate = false;
+    if (plan) layoutPlan();
+    renderConditions();
+    renderObsPanel();
+  }
+
+  // ---------- Plànol ----------
+  function planWidth() { return els.groups.clientWidth || 800; }
+  function layoutPlan() {
+    const wrap = els.groups, W = planWidth(), n = state.groups.length;
+    const cols = n <= 3 ? n : n <= 4 ? 4 : n <= 6 ? 3 : n <= 8 ? 4 : 5;
+    const gap = Math.max(14, W * 0.025);
+    const pw = Math.min(260, (W - gap * (cols + 1)) / cols);
+    wrap.style.setProperty("--pw", pw + "px");
+    if (state.planN !== n) { state.pos = {}; state.desk = null; state.planN = n; }
+    const cards = Array.from(wrap.querySelectorAll(".card"));
+    const desk = wrap.querySelector(".desk");
+    if (!state.desk) state.desk = { x: 0.02, y: 0.02 };
+    place(desk, state.desk, W);
+    // Col·locació automàtica dels grups sense posició
+    let y = Math.max(34, desk.offsetTop + desk.offsetHeight) + gap;
+    let rowMax = 0;
+    cards.forEach((c, k) => {
+      const gi = +c.dataset.g;
+      if (!state.pos[gi]) {
+        const col = k % cols;
+        if (col === 0 && k > 0) { y += rowMax + gap; rowMax = 0; }
+        const rowCount = Math.min(cols, n - Math.floor(k / cols) * cols);
+        const x0 = (W - (rowCount * pw + (rowCount - 1) * gap)) / 2;
+        state.pos[gi] = { x: (x0 + col * (pw + gap)) / W, y: y / W };
+      }
+      place(c, state.pos[gi], W);
+      rowMax = Math.max(rowMax, c.offsetHeight);
+    });
+    fitPlanHeight();
+  }
+  function place(el, p, W) { el.style.left = (p.x * W) + "px"; el.style.top = (p.y * W) + "px"; }
+  function fitPlanHeight() {
+    const wrap = els.groups, W = planWidth();
+    let bottom = W * 0.6;
+    wrap.querySelectorAll(".card, .desk").forEach(c => { bottom = Math.max(bottom, c.offsetTop + c.offsetHeight + 24); });
+    wrap.style.height = bottom + "px";
+  }
+  let mover = null;
+  els.groups.addEventListener("pointerdown", e => {
+    if (state.view !== "plan" || e.button > 0) return;
+    if (e.target.closest("button, .chip")) return;
+    const head = e.target.closest(".card-head"), desk = e.target.closest(".desk");
+    const el = desk || (head && head.closest(".card"));
+    if (!el) return;
+    e.preventDefault();
+    const r = el.getBoundingClientRect();
+    mover = { el, dx: e.clientX - r.left, dy: e.clientY - r.top, id: e.pointerId };
+    el.classList.add("moving");
+    els.groups.setPointerCapture(e.pointerId);
+  });
+  els.groups.addEventListener("pointermove", e => {
+    if (!mover || e.pointerId !== mover.id) return;
+    const pr = els.groups.getBoundingClientRect(), W = planWidth();
+    let x = e.clientX - pr.left - mover.dx, y = e.clientY - pr.top - mover.dy;
+    x = Math.max(0, Math.min(W - mover.el.offsetWidth, x)); y = Math.max(0, y);
+    mover.el.style.left = x + "px"; mover.el.style.top = y + "px";
+    const p = { x: x / W, y: y / W };
+    if (mover.el.dataset.desk) state.desk = p; else state.pos[mover.el.dataset.g] = p;
+    fitPlanHeight();
+  });
+  const endMove = e => { if (!mover) return; mover.el.classList.remove("moving"); mover = null; };
+  els.groups.addEventListener("pointerup", endMove);
+  els.groups.addEventListener("pointercancel", endMove);
+  let rz; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { if (state.view === "plan") render(); }, 150); });
+
+  // ---------- Observació ----------
+  function renderObsPanel() {
+    const panel = $("obsPanel");
+    panel.classList.toggle("obs-off", !state.obs);
+    const counts = Object.fromEntries(LEVELS.map(l => [l.k, 0]));
+    if (state.obsStarted) state.names.forEach((_, i) => counts[ratingOf(i)]++);
+    $("legend").innerHTML = LEVELS.map(l => `<div class="${l.k}" style="--lv:${l.color}" title="${l.name}"><b>${state.obsStarted ? counts[l.k] : "–"}</b>${l.label}</div>`).join("");
+    const list = $("actList");
+    if (!state.acts.length) list.innerHTML = '<li><span class="hint">Encara cap. L\'activitat en curs també s\'exporta.</span></li>';
+    else list.innerHTML = state.acts.map((a, k) => `<li><span>${esc(actHeader(a))}</span><button type="button" data-del="${k}" aria-label="Elimina ${esc(actHeader(a))}">×</button></li>`).join("");
+  }
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  function actHeader(a) {
+    const d = a.date ? a.date.split("-").reverse().join("/") : "";
+    return (a.name || "Activitat") + (d ? " (" + d + ")" : "");
+  }
+  function isoToday() { const d = new Date(), p = x => String(x).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; }
+  function setObs(on) {
+    state.obs = on;
+    if (on && !state.obsStarted) { state.obsStarted = true; if (!$("actDate").value) $("actDate").value = isoToday(); }
+    $("obsToggle").setAttribute("aria-pressed", on);
+    if (on) $("obsPanel").open = true;
+    state.selected = null; closePop(); render();
+    flash(on ? "Observació activada: toca un nom per valorar-lo" : "Observació aturada");
+  }
+  $("obsToggle").onclick = () => setObs(!state.obs);
+  $("actNew").onclick = () => {
+    if (!state.obsStarted) return;
+    state.acts.push(snapshot());
+    const keep = {}; state.names.forEach((_, i) => { if (ratingOf(i) === "ABS") keep[keyOf(i)] = "ABS"; });
+    state.cur = keep; $("actName").value = ""; state.dirty = true;
+    render(); flash("Activitat desada. Comença la següent: tothom torna a AE (els absents es mantenen)");
+    $("actName").focus();
+  };
+  function snapshot() {
+    const r = {}; state.names.forEach((_, i) => { r[keyOf(i)] = ratingOf(i); });
+    return { name: $("actName").value.trim(), date: $("actDate").value, ratings: r };
+  }
+  $("actList").addEventListener("click", e => {
+    const b = e.target.closest("[data-del]"); if (!b) return;
+    const k = +b.dataset.del;
+    if (b.dataset.confirm) { state.acts.splice(k, 1); renderObsPanel(); flash("Activitat eliminada"); }
+    else { b.dataset.confirm = "1"; b.textContent = "Elimina?"; b.style.fontSize = "12px"; setTimeout(() => renderObsPanel(), 3000); }
+  });
+
+  // Popup de valoració
+  const pop = $("pop"); let popIdx = null;
+  function openPop(chip) {
+    popIdx = +chip.dataset.i;
+    const cur = ratingOf(popIdx);
+    pop.innerHTML = LEVELS.map(l => `<button type="button" role="menuitem" class="${l.k}${l.k === cur ? " cur" : ""}" data-lv="${l.k}" style="--lv:${l.color}" title="${l.name}">${l.label}</button>`).join("");
+    pop.classList.add("open");
+    const r = chip.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight;
+    let x = Math.min(window.innerWidth - pw - 8, Math.max(8, r.left + r.width / 2 - pw / 2));
+    let y = r.bottom + 6; if (y + ph > window.innerHeight - 8) y = r.top - ph - 6;
+    pop.style.left = x + "px"; pop.style.top = y + "px";
+    pop.querySelector(".cur").focus();
+  }
+  function closePop() { pop.classList.remove("open"); popIdx = null; }
+  pop.addEventListener("click", e => {
+    const b = e.target.closest("[data-lv]"); if (!b || popIdx === null) return;
+    setRating(popIdx, b.dataset.lv); closePop(); render();
+  });
+  document.addEventListener("pointerdown", e => { if (pop.classList.contains("open") && !pop.contains(e.target) && !e.target.closest(".chip")) closePop(); });
+
+  // Exportació
+  function exportRows() {
+    const acts = state.acts.slice();
+    if (state.obsStarted) acts.push(snapshot());
+    const hasNia = state.nia.some(Boolean);
+    const where = {}; state.groups.forEach((g, gi) => g.forEach(i => { where[i] = groupName(gi); }));
+    let order = state.names.map((_, i) => i);
+    if ($("order").value === "alpha") order.sort((a, b) => state.names[a].localeCompare(state.names[b], "ca", { sensitivity: "base" }));
+    const header = (hasNia ? ["NIA"] : []).concat(["Alumne", "Grup"], acts.map(actHeader));
+    const rows = order.map(i => (hasNia ? [state.nia[i]] : []).concat([state.names[i], where[i] || ""],
+      acts.map(a => { const v = a.ratings[keyOf(i)]; return v === "ABS" ? "Absent" : (v || ""); })));
+    return { header, rows, nActs: acts.length };
+  }
+  $("xlsxBtn").onclick = async () => {
+    const { header, rows, nActs } = exportRows();
+    if (!nActs) { flash("Encara no hi ha cap observació. Activa «Observació» a dalt."); return; }
+    if (!window.XLSX) { flash("El generador d'Excel no s'ha carregat. Fes servir «Copia per a Sheets»."); return; }
+    const ws = XLSX.utils.aoa_to_sheet([header].concat(rows));
+    ws["!cols"] = header.map((h, k) => ({ wch: Math.max(8, Math.min(40, Math.max(String(h).length, ...rows.map(r => String(r[k] || "").length)) + 2)) }));
+    ws["!freeze"] = { xSplit: 0, ySplit: 1 };
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Observació");
+    const buf = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const ok = await save("observacio-" + fileBase() + ".xlsx", buf);
+    if (ok) state.dirty = false;
+  };
+  $("obsCopy").onclick = async () => {
+    const { header, rows, nActs } = exportRows();
+    if (!nActs) { flash("Encara no hi ha cap observació. Activa «Observació» a dalt."); return; }
+    try { await navigator.clipboard.writeText([header].concat(rows).map(r => r.join("\t")).join("\n")); state.dirty = false; flash("Copiat: enganxa-ho a Google Sheets"); }
+    catch (e) { flash("No s'ha pogut copiar"); }
+  };
+  window.addEventListener("beforeunload", e => { if (state.dirty) { e.preventDefault(); e.returnValue = ""; } });
+
+  // Vistes
+  function setView(v) {
+    state.view = v;
+    $("vGrid").setAttribute("aria-pressed", v === "grid"); $("vPlan").setAttribute("aria-pressed", v === "plan");
+    state.selected = null; closePop(); render();
+  }
+  $("vGrid").onclick = () => setView("grid");
+  $("vPlan").onclick = () => setView("plan");
+  $("planReset").onclick = () => { state.pos = {}; state.desk = null; render(); flash("Taules reorganitzades"); };
+
   function renderConditions() {
     const box = document.getElementById("condLine");
     const r = state.groups.length ? checkConditions() : null;
@@ -591,7 +900,14 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
   }
 
   els.groups.addEventListener("click", e => {
+    const setB = e.target.closest("[data-set]");
+    if (setB) {
+      const gi = +setB.closest(".card").dataset.g;
+      state.groups[gi].forEach(i => { if (ratingOf(i) !== "ABS") setRating(i, setB.dataset.set); });
+      render(); flash(`${groupName(gi)}: ${LV[setB.dataset.set].name} (excepte absents)`); return;
+    }
     const chip = e.target.closest(".chip"), card = e.target.closest(".card");
+    if (chip && state.obs) { openPop(chip); return; }
     if (chip) {
       const idx = +chip.dataset.i;
       if (state.selected === null) state.selected = idx;
@@ -607,7 +923,7 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("chip")) { e.preventDefault(); e.target.click(); }
   });
   document.addEventListener("keydown", e => {
-    if (e.key === "Escape") { if (state.selected !== null) { state.selected = null; render(); } closeOverlay(); }
+    if (e.key === "Escape") { closePop(); if (state.selected !== null) { state.selected = null; render(); } closeOverlay(); }
   });
   let dragIdx = null;
   els.groups.addEventListener("dragstart", e => {
@@ -684,6 +1000,7 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
   }
   async function drawImage() {
     try { await document.fonts.ready; } catch (e) {}
+    if (state.view === "plan") return drawPlan();
     const D = '"Bricolage Grotesque", "Segoe UI", sans-serif', B = '"Atkinson Hyperlegible", "Segoe UI", sans-serif';
     const n = state.groups.length;
     const cols = n <= 4 ? n : n <= 6 ? 3 : n <= 8 ? 4 : n <= 10 ? 5 : n <= 12 ? 4 : 5;
@@ -742,6 +1059,60 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     });
     return cv;
   }
+  // Dibuixa el plànol a partir de la posició real dels elements a la pantalla
+  function drawPlan() {
+    const D = '"Bricolage Grotesque", "Segoe UI", sans-serif', B = '"Atkinson Hyperlegible", "Segoe UI", sans-serif';
+    const wrap = els.groups, pr = wrap.getBoundingClientRect();
+    const PW = 1800, k = PW / pr.width, P = 60, headH = 170;
+    const planH = wrap.offsetHeight * k;
+    const W = PW + 2 * P, H = headH + planH + P;
+    const S = 1.25;
+    const cv = document.createElement("canvas"); cv.width = W * S; cv.height = H * S;
+    const ctx = cv.getContext("2d"); ctx.scale(S, S);
+    ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, W, H);
+    COLORS.slice(0, 4).forEach((c, i) => { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(P + 14 + (i % 2) * 26, 54 + Math.floor(i / 2) * 26, 11, 0, Math.PI * 2); ctx.fill(); });
+    ctx.fillStyle = "#16203a";
+    ctx.fillText(fitText(ctx, els.title.value.trim() || "Grups", W - 2 * P - 80, 60, 800, D, 30), P + 76, 92);
+    ctx.font = `400 26px ${B}`; ctx.fillStyle = "#5d6680"; ctx.fillText(metaText(), P + 76, 132);
+    const ox = P, oy = headH;
+    const R = el => { const r = el.getBoundingClientRect(); return { x: ox + (r.left - pr.left) * k, y: oy + (r.top - pr.top) * k, w: r.width * k, h: r.height * k }; };
+    ctx.fillStyle = "#f3f5fa"; roundRect(ctx, ox, oy, PW, planH, 24); ctx.fill();
+    ctx.strokeStyle = "#dde2ee"; ctx.lineWidth = 2; ctx.stroke();
+    const bb = R(wrap.querySelector(".bboard"));
+    ctx.fillStyle = "#16203a"; roundRect(ctx, bb.x, bb.y, bb.w, bb.h, 14); ctx.fill(); ctx.fillRect(bb.x, bb.y, bb.w, bb.h / 2);
+    ctx.fillStyle = "#fff"; ctx.font = `800 ${Math.round(14 * k)}px ${D}`; ctx.textAlign = "center"; ctx.fillText("PISSARRA", bb.x + bb.w / 2, bb.y + bb.h * 0.68);
+    const dk = R(wrap.querySelector(".desk"));
+    ctx.fillStyle = "#e9e1d2"; roundRect(ctx, dk.x, dk.y, dk.w, dk.h, 10 * k); ctx.fill(); ctx.strokeStyle = "#cdbf9f"; ctx.stroke();
+    ctx.fillStyle = "#5b4a2e"; ctx.font = `700 ${Math.round(13 * k)}px ${B}`; ctx.fillText(fitText(ctx, "Taula del professor", dk.w - 10, Math.round(13 * k), 700, B, 12), dk.x + dk.w / 2, dk.y + dk.h / 2 + 5 * k);
+    ctx.textAlign = "left";
+    wrap.querySelectorAll(".card").forEach(card => {
+      const gi = +card.dataset.g, col = colorOf(gi), c = R(card);
+      ctx.save(); roundRect(ctx, c.x, c.y, c.w, c.h, 16 * k); ctx.clip();
+      ctx.fillStyle = tint(col, 0.13); ctx.fillRect(c.x, c.y, c.w, c.h);
+      ctx.fillStyle = col; ctx.fillRect(c.x, c.y, c.w, 7 * k); ctx.restore();
+      const b = R(card.querySelector(".badge"));
+      ctx.fillStyle = col; ctx.beginPath(); ctx.arc(b.x + b.w / 2, b.y + b.h / 2, b.w / 2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.font = `800 ${Math.round(14 * k)}px ${D}`; ctx.textAlign = "center"; ctx.fillText(String(gi + 1), b.x + b.w / 2, b.y + b.h / 2 + 5 * k); ctx.textAlign = "left";
+      const g = R(card.querySelector(".gname")), cnt = R(card.querySelector(".gcount"));
+      ctx.fillStyle = "#16203a"; ctx.fillText(fitText(ctx, groupName(gi), cnt.x - g.x - 8, Math.round(16 * k), 800, D, 14), g.x + 4 * k, g.y + g.h * 0.72);
+      ctx.fillStyle = "#5d6680"; ctx.font = `400 ${Math.round(13 * k)}px ${B}`; ctx.fillText(card.querySelector(".gcount").textContent, cnt.x, cnt.y + cnt.h * 0.75);
+      card.querySelectorAll(".chip").forEach((chip, pos) => {
+        const r = R(chip);
+        ctx.fillStyle = "#ffffff"; roundRect(ctx, r.x, r.y, r.w, r.h, 10 * k); ctx.fill();
+        const n = R(chip.querySelector(".num"));
+        ctx.fillStyle = tint(col, 0.18); roundRect(ctx, n.x, n.y, n.w, n.h, 7 * k); ctx.fill();
+        ctx.fillStyle = col; ctx.font = `700 ${Math.round(11 * k)}px ${B}`; ctx.textAlign = "center"; ctx.fillText(String(pos + 1), n.x + n.w / 2, n.y + n.h * 0.72); ctx.textAlign = "left";
+        let tagW = 0;
+        if (els.speaker.checked && pos === 0) {
+          ctx.font = `700 ${Math.round(10 * k)}px ${B}`; const tag = "★ PORTAVEU"; tagW = ctx.measureText(tag).width + 10 * k;
+          ctx.fillStyle = col; ctx.fillText(tag, r.x + r.w - tagW, r.y + r.h * 0.66);
+        }
+        ctx.fillStyle = "#16203a";
+        ctx.fillText(fitText(ctx, display(state.names[+chip.dataset.i]), r.x + r.w - (n.x + n.w + 8 * k) - tagW - 8 * k, Math.round(14 * k), 400, B, 12), n.x + n.w + 8 * k, r.y + r.h * 0.68);
+      });
+    });
+    return cv;
+  }
   function fileBase() {
     const t = (els.title.value.trim() || "grups").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^\w]+/g, "-").replace(/^-|-$/g, "").toLowerCase();
     const d = new Date(); const p = x => String(x).padStart(2, "0");
@@ -752,18 +1123,19 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
   let downloads = null;
   async function save(filename, data) {
     if (!downloads) {
-      const blob = data instanceof Blob ? data : new Blob([data], { type: filename.endsWith(".pdf") ? "application/pdf" : "application/octet-stream" });
+      const blob = data instanceof Blob ? data : new Blob([data], { type: "application/octet-stream" });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement("a"); a.href = url; a.download = filename;
-      document.body.appendChild(a); a.click(); a.remove();
+      const el = document.createElement("a"); el.href = url; el.download = filename;
+      document.body.appendChild(el); el.click(); el.remove();
       setTimeout(() => URL.revokeObjectURL(url), 2000);
-      flash("Fitxer descarregat"); return;
+      flash("Fitxer descarregat"); return true;
     }
-    try { await downloads.save({ filename, data }); flash("Fitxer desat"); }
+    try { await downloads.save({ filename, data }); flash("Fitxer desat"); return true; }
     catch (e) {
       if (e && e.code === "declined") flash("Descàrrega cancel·lada");
       else if (e && e.code === "rate_limited") flash("Espera un moment i torna-ho a provar");
-      else { flash("No s'ha pogut descarregar. Fes servir «Veure la imatge»."); }
+      else { flash("No s'ha pogut descarregar. Fes servir «Veure la imatge» o «Copia per a Sheets»."); }
+      return false;
     }
   }
   $("dlPng").onclick = async () => {
@@ -812,14 +1184,15 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
   // ---------- Inici ----------
   els.names.value = EXAMPLE.join("\n");
   applyParse(els.names.value);
+  $("actDate").value = isoToday();
   regroup();
 
   if (window.claude && typeof window.claude.use === "function") {
     window.claude.use("downloads").then(d => {
-      if (d) { downloads = d; $("dlPng").hidden = false; $("dlPdf").hidden = false; }
+      if (d) { downloads = d; $("dlPng").hidden = false; $("dlPdf").hidden = false; $("xlsxBtn").hidden = false; }
     }).catch(() => {});
   } else {
-    $("dlPng").hidden = false; $("dlPdf").hidden = false;
+    $("dlPng").hidden = false; $("dlPdf").hidden = false; $("xlsxBtn").hidden = false;
   }
 })();
 </script>

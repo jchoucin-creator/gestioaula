@@ -1,6 +1,6 @@
 # Creador de grups
 
-Eina web per fer grups d'alumnes a l'atzar a partir d'una llista copiada de Google Sheets. Els grups surten equilibrats i es poden retocar a mà. Després es poden descarregar en una imatge o en un PDF per imprimir.
+Eina web per fer grups d'alumnes a l'atzar a partir d'una llista copiada de Google Sheets, situar-los en un plànol d'aula i recollir-ne observacions amb un semàfor. Els grups surten equilibrats i es poden retocar a mà. Després es poden descarregar en una imatge o en un PDF per imprimir.
 
 👉 **Fes-la servir aquí:** **https://jchoucin-creator.github.io/gestioaula/creador-grups/**
 
@@ -48,6 +48,55 @@ Cada nom porta un número d'ordre dins del grup. Si actives **Marca un portaveu 
 | **Veure la imatge** | Obre la imatge en gran. Amb clic dret (o mantenint-la premuda al mòbil) es pot desar o copiar |
 | **Copia per a Sheets** | Copia els grups en columnes, per enganxar-los a Google Sheets |
 | **Pantalla completa** | Mostra els grups en gran, per projectar-los |
+
+---
+
+## Plànol d'aula
+
+Amb el botó **Plànol d'aula** (a dalt), els grups es mostren com a taules sobre un plànol, amb la pissarra a dalt i la taula del professor.
+
+- **Arrossega cada grup per la capçalera** (o la taula del professor) per situar-lo on és a l'aula.
+- Si tornes a barrejar amb el mateix nombre de grups, **les taules no es mouen**: només hi canvien les persones.
+- **Reorganitza les taules** les torna a col·locar automàticament.
+- La imatge i el PDF reprodueixen la disposició del plànol.
+
+---
+
+## Observació d'aula (semàfor)
+
+Serveix per valorar ràpidament una activitat i passar les valoracions a un full de notes.
+
+### Nivells
+
+| Nivell | Color | Significat |
+|---|---|---|
+| **AE** | Verd | Assoliment excel·lent |
+| **AN** | Verd clar | Assoliment notable |
+| **AS** | Groc | Assoliment satisfactori |
+| **NA** | Vermell | No assoliment |
+| **Absent** | Blanc | No hi era |
+
+### Com s'utilitza
+
+1. Prem **Observació** (a dalt). Tothom comença en **AE**.
+2. Escriu el nom de l'**activitat** i comprova la **data** (barra lateral, apartat *Observació d'aula*).
+3. A cada targeta, els botons **Tot el grup: AE · AN · AS · NA** posen el mateix nivell a tots els membres del grup (els absents no canvien).
+4. **Toca el nom d'un alumne** per matisar-ne el nivell o marcar-lo com a **Absent**.
+5. Per valorar una altra activitat a la mateixa sessió, prem **Desa l'activitat i comença'n una altra**. Tothom torna a AE i els absents es mantenen.
+
+Mentre l'observació està activa, tocar un nom serveix per valorar-lo. Per moure o intercanviar alumnes, desactiva-la.
+
+### Exportar
+
+- **Descarrega Excel** genera un fitxer `.xlsx` amb una fila per alumne i una columna per activitat (`Nom de l'activitat (dd/mm/aaaa)`).
+- **Copia per a Sheets** copia la mateixa taula per enganxar-la directament en un full.
+- Les files poden anar en **ordre alfabètic per cognoms** o en **el mateix ordre que la llista enganxada**. Si copies la llista des del teu llibre de notes i tries aquesta segona opció, les files coincidiran exactament amb les del llibre.
+- Si enganxes també la columna del **NIA**, apareix a l'Excel com a primera columna. No es mostra mai a la pantalla.
+- Columnes: `NIA` (si n'hi ha) · `Alumne` · `Grup` · una columna per activitat amb `AE`, `AN`, `AS`, `NA` o `Absent`.
+
+### Privacitat
+
+Les observacions **no es desen enlloc**. Si intentes tancar la pestanya sense haver exportat, el navegador t'avisa. Els colors del semàfor no surten mai a la imatge ni al PDF dels grups.
 
 ---
 
