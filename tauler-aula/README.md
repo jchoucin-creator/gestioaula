@@ -76,11 +76,11 @@ Serveix per valorar ràpidament una activitat i passar les valoracions a un full
 
 ### Com s'utilitza
 
-1. Prem **Observació** (a dalt). Tothom comença en **AE**.
+1. Prem **Observació** (a dalt). Tothom comença en **AN**.
 2. Escriu el nom de l'**activitat** i comprova la **data** (barra lateral, apartat *Observació d'aula*).
 3. A cada targeta, els botons **Tot el grup: AE · AN · AS · NA** posen el mateix nivell a tots els membres del grup (els absents no canvien).
 4. **Toca el nom d'un alumne** per matisar-ne el nivell o marcar-lo com a **Absent**.
-5. Per valorar una altra activitat a la mateixa sessió, prem **Desa l'activitat i comença'n una altra**. Tothom torna a AE i els absents es mantenen.
+5. Per valorar una altra activitat a la mateixa sessió, prem **Desa l'activitat i comença'n una altra**. Tothom torna a AN i els absents es mantenen.
 
 Mentre l'observació està activa, tocar un nom serveix per valorar-lo. Per moure o intercanviar alumnes, desactiva-la.
 

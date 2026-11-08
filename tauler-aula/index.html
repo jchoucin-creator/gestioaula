@@ -327,7 +327,7 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     <details class="obs-panel obs-off" id="obsPanel">
       <summary>Observació d'aula (semàfor)</summary>
       <div class="stack">
-        <p class="hint" style="margin:0">Activa <b>Observació</b> a dalt. Tothom comença en <b>AE</b>. Posa el nivell a tot el grup amb els botons de la targeta i retoca cada alumne tocant-ne el nom.</p>
+        <p class="hint" style="margin:0">Activa <b>Observació</b> a dalt. Tothom comença en <b>AN</b>. Posa el nivell a tot el grup amb els botons de la targeta i retoca cada alumne tocant-ne el nom.</p>
         <div class="grid2 obs-only">
           <div><label for="actName">Activitat</label><input type="text" id="actName" placeholder="p. ex. Assaig de flauta"></div>
           <div><label for="actDate">Data</label><input type="date" id="actDate"></div>
@@ -739,7 +739,8 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
   ];
   const LV = Object.fromEntries(LEVELS.map(l => [l.k, l]));
   const keyOf = i => state.nia[i] || state.names[i];
-  const ratingOf = i => state.cur[keyOf(i)] || "AE";
+  const DEFAULT_LV = "AN";
+  const ratingOf = i => state.cur[keyOf(i)] || DEFAULT_LV;
   function setRating(i, k) { state.cur[keyOf(i)] = k; state.dirty = true; }
 
   function chipEl(idx, pos, gi) {
@@ -908,7 +909,7 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     state.acts.push(snapshot());
     const keep = {}; state.names.forEach((_, i) => { if (ratingOf(i) === "ABS") keep[keyOf(i)] = "ABS"; });
     state.cur = keep; $("actName").value = ""; state.dirty = true;
-    render(); flash("Activitat desada. Comença la següent: tothom torna a AE (els absents es mantenen)");
+    render(); flash("Activitat desada. Comença la següent: tothom torna a AN (els absents es mantenen)");
     $("actName").focus();
   };
   function snapshot() {
@@ -977,7 +978,7 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     const shown = sel === "all" ? acts.map((a, k) => k) : [+sel];
     const head = `<tr><th>#</th><th>Alumne</th>${shown.map(k => `<th>${esc(actHeader(acts[k]))}</th>`).join("")}</tr>`;
     const body = alphaOrder().map((i, n) => `<tr><td class="n">${n + 1}</td><td>${esc(state.names[i])}</td>${shown.map(k => {
-      const v = acts[k].ratings[keyOf(i)] || "AE", l = LV[v];
+      const v = acts[k].ratings[keyOf(i)] || DEFAULT_LV, l = LV[v];
       return `<td><span class="g ${v}" style="--lv:${l.color}"><i>${l.label}</i><b>${NUM[v]}</b></span></td>`;
     }).join("")}</tr>`).join("");
     $("cTable").innerHTML = head + body;
@@ -1056,7 +1057,7 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
       while (doc.getTextWidth(nm) > nameW - 3 && nm.length > 2) nm = nm.slice(0, -2) + "…";
       doc.text(nm, M + numW, y + 4.9);
       shown.forEach((k, c) => {
-        const v = acts[k].ratings[keyOf(i)] || "AE", x = M + numW + nameW + c * colW + 1;
+        const v = acts[k].ratings[keyOf(i)] || DEFAULT_LV, x = M + numW + nameW + c * colW + 1;
         if (v === "ABS") {
           doc.setDrawColor("#b8bfd0"); doc.setLineDashPattern([0.8, 0.8], 0); doc.roundedRect(x, y + 1.2, 15, 4.8, 1, 1, "S"); doc.setLineDashPattern([], 0);
           doc.setFont("helvetica", "bold"); doc.setFontSize(7.5); doc.setTextColor("#5d6680"); doc.text("Absent", x + 7.5, y + 4.6, { align: "center" });
@@ -1078,7 +1079,7 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
   $("cCopy").onclick = async () => {
     const acts = allActs(), sel = $("cAct").value;
     const shown = sel === "all" ? acts.map((a, k) => k) : [+sel];
-    const text = alphaOrder().map(i => shown.map(k => NUM[acts[k].ratings[keyOf(i)] || "AE"]).join("\t")).join("\n");
+    const text = alphaOrder().map(i => shown.map(k => NUM[acts[k].ratings[keyOf(i)] || DEFAULT_LV]).join("\t")).join("\n");
     try {
       await navigator.clipboard.writeText(text);
       state.dirty = false; cModal.classList.remove("open");
