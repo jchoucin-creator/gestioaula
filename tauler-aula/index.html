@@ -44,6 +44,11 @@ body {
   font-size: 16px; line-height: 1.45;
 }
 .app { display: grid; grid-template-columns: 370px 1fr; min-height: 100%; }
+.app.collapsed { grid-template-columns: 1fr; }
+.app.collapsed > aside { display: none; }
+.side-toggle { display: inline-flex; align-items: center; gap: 6px; }
+.side-toggle .warn-dot { display: none; color: #b45309; font-weight: 800; }
+.side-toggle.has-warn .warn-dot { display: inline; }
 aside {
   background: var(--panel); border-right: 1px solid var(--line);
   padding: 24px 22px 28px; display: flex; flex-direction: column; gap: 18px;
@@ -173,6 +178,19 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
 .obs-panel .legend div { text-align: center; border-radius: 8px; padding: 5px 2px; font-size: 12px; font-weight: 700; color: #fff; background: var(--lv); font-variant-numeric: tabular-nums; }
 .obs-panel .legend div b { display: block; font-size: 17px; }
 .obs-panel .legend div.ABS { background: var(--paper); color: var(--muted); border: 1.5px dashed var(--line); }
+.rub { border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; background: var(--paper); }
+.rub textarea, .rub-lv textarea { min-height: 0; font-size: 13px; line-height: 1.35; padding: 6px 8px; resize: vertical; }
+.rub-lv { display: grid; grid-template-columns: 38px 1fr; gap: 5px 8px; align-items: start; }
+.rub-lv .lvtag { margin: 0; text-align: center; background: var(--lv); color: #fff; border-radius: 7px; padding: 6px 0; font-size: 12px; }
+.rub .tiny { font-size: 12px; }
+.pop.rich { flex-direction: column; width: min(380px, 92vw); }
+.pop.rich button { display: flex; gap: 10px; align-items: baseline; text-align: left; font-weight: 600; line-height: 1.3; }
+.pop.rich button b { flex: none; min-width: 26px; font-weight: 800; }
+.more { border-top: 1px dashed var(--line); padding-top: 10px; }
+.tiny { font-size: 13px !important; color: var(--muted); }
+input.need { outline: 3px solid #f59e0b; outline-offset: 1px; }
+.board-crit { margin: -6px 0 14px; font-size: 17px; color: var(--muted); }
+.board-crit b { color: var(--ink); }
 .acts { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; font-size: 13px; }
 .acts li { display: flex; align-items: center; gap: 6px; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
 .acts li span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
@@ -232,7 +250,7 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
 </head>
 <body>
 <div class="app">
-  <aside>
+  <aside id="sidePanel">
     <div class="brand">
       <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
         <circle cx="10" cy="11" r="7" fill="#ff5a36"/><circle cx="24" cy="11" r="7" fill="#3a86ff"/>
@@ -248,29 +266,39 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
           <label for="title">Títol</label>
           <input type="text" id="title" value="Grups de treball">
         </div>
-        <div class="grid2">
-          <div>
-            <label for="naming">Nom dels grups</label>
-            <select id="naming">
-              <option value="num">Grup 1, 2, 3…</option>
-              <option value="letter">Grup A, B, C…</option>
-              <option value="instr">Instruments</option>
-              <option value="notes">Notes musicals</option>
-              <option value="colors">Colors</option>
-            </select>
-          </div>
-          <div>
-            <label for="format">Noms de l'alumnat</label>
-            <select id="format">
-              <option value="full">Complets</option>
-              <option value="initial">Nom + inicial</option>
-              <option value="first">Només el nom</option>
-            </select>
-          </div>
+        <div>
+          <label for="klass">Classe <span class="hint">· nivell i grup</span></label>
+          <input type="text" id="klass" list="klassList" placeholder="p. ex. 1r ESO B" autocomplete="off">
+          <datalist id="klassList"></datalist>
         </div>
-        <label class="check"><input type="checkbox" id="flip" checked> <span>Gira «Cognoms, Nom» a «Nom Cognoms» <span class="hint">(format d'iEduca)</span></span></label>
-        <label class="check"><input type="checkbox" id="speaker"> <span>Marca un portaveu per grup <span class="hint">(el primer de la llista)</span></span></label>
-        <label class="check"><input type="checkbox" id="sortIn"> <span>Ordena alfabèticament dins de cada grup</span></label>
+        <details class="more">
+          <summary class="tiny">Més opcions de presentació</summary>
+          <div class="stack">
+            <div class="grid2">
+              <div>
+                <label for="naming">Nom dels grups</label>
+                <select id="naming">
+                  <option value="num">Grup 1, 2, 3…</option>
+                  <option value="letter">Grup A, B, C…</option>
+                  <option value="instr">Instruments</option>
+                  <option value="notes">Notes musicals</option>
+                  <option value="colors">Colors</option>
+                </select>
+              </div>
+              <div>
+                <label for="format">Noms de l'alumnat</label>
+                <select id="format">
+                  <option value="full">Complets</option>
+                  <option value="initial">Nom + inicial</option>
+                  <option value="first">Només el nom</option>
+                </select>
+              </div>
+            </div>
+            <label class="check"><input type="checkbox" id="flip" checked> <span>Gira «Cognoms, Nom» a «Nom Cognoms» <span class="hint">(format d'iEduca)</span></span></label>
+            <label class="check"><input type="checkbox" id="speaker"> <span>Marca un portaveu per grup <span class="hint">(el primer de la llista)</span></span></label>
+            <label class="check"><input type="checkbox" id="sortIn"> <span>Ordena alfabèticament dins de cada grup</span></label>
+          </div>
+        </details>
       </div>
     </details>
 
@@ -332,6 +360,46 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
           <div><label for="actName">Activitat</label><input type="text" id="actName" placeholder="p. ex. Assaig de flauta"></div>
           <div><label for="actDate">Data</label><input type="date" id="actDate"></div>
         </div>
+        <details class="rub" id="rubWrap">
+          <summary>Rúbrica <span class="hint" id="rubSum">(opcional)</span></summary>
+          <div class="stack">
+            <div>
+              <label for="rubPick">Banc de rúbriques</label>
+              <select id="rubPick"></select>
+            </div>
+            <div><label for="rubName">Nom de la rúbrica</label><input type="text" id="rubName" placeholder="p. ex. Flauta · pols"></div>
+            <div><label for="rubCrit">Criteri d'avaluació</label><textarea id="rubCrit" rows="2" placeholder="p. ex. Interpreta la peça mantenint el pols"></textarea></div>
+            <div class="rub-lv">
+              <label class="lvtag" for="rubAE" style="--lv:#16a34a">AE</label><textarea id="rubAE" rows="2" placeholder="Indicador d'assoliment excel·lent"></textarea>
+              <label class="lvtag" for="rubAN" style="--lv:#7cb518">AN</label><textarea id="rubAN" rows="2" placeholder="Indicador d'assoliment notable"></textarea>
+              <label class="lvtag" for="rubAS" style="--lv:#f0a202">AS</label><textarea id="rubAS" rows="2" placeholder="Indicador d'assoliment satisfactori"></textarea>
+              <label class="lvtag" for="rubNA" style="--lv:#e5383b">NA</label><textarea id="rubNA" rows="2" placeholder="Indicador de no assoliment"></textarea>
+            </div>
+            <div class="grid2">
+              <button type="button" class="btn small" id="rubSave">Desa al banc</button>
+              <button type="button" class="btn small" id="rubDel">Treu del banc</button>
+            </div>
+            <details>
+              <summary class="tiny">Importa o copia el banc</summary>
+              <div class="stack">
+                <p class="hint" style="margin:0">Al full de càlcul, una rúbrica per fila amb sis columnes: <b>Nom · Criteri · AE · AN · AS · NA</b>.</p>
+                <label for="rubUrl" style="margin:0">Des del full publicat al web</label>
+                <input type="url" id="rubUrl" placeholder="Adreça de Publica al web (CSV)" autocomplete="off">
+                <div class="grid2">
+                  <button type="button" class="btn small" id="rubFetch">Actualitza des del full</button>
+                  <label class="check" style="margin:0"><input type="checkbox" id="rubAuto" checked> <span class="hint">Cada cop que obro la pàgina</span></label>
+                </div>
+                <label for="rubPaste" style="margin:0">O bé copia les files i enganxa-les</label>
+                <textarea id="rubPaste" rows="3" placeholder="Enganxa aquí les files del full"></textarea>
+                <div class="grid2">
+                  <button type="button" class="btn small" id="rubAdd">Afegeix al banc</button>
+                  <button type="button" class="btn small" id="rubCopy">Copia el banc</button>
+                </div>
+                <p class="hint" style="margin:0">El banc es desa en aquest navegador. No conté cap dada de l'alumnat.</p>
+              </div>
+            </details>
+          </div>
+        </details>
         <div class="legend obs-only" id="legend"></div>
         <button type="button" class="btn small obs-only" id="actNew">Desa l'activitat i comença'n una altra</button>
         <div>
@@ -362,7 +430,9 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
           <tr><td><code>S1</code></td><td>Separar de tots els que tenen <code>S1</code></td></tr>
           <tr><td><code>J1</code></td><td>Junts amb tots els que tenen <code>J1</code></td></tr>
           <tr><td><code>V1</code></td><td>Veu o categoria (per exemple, <code>V1</code> aguda, <code>V2</code> greu)</td></tr>
+          <tr><td><code>A</code></td><td>Absent: no entra als grups i surt com a <i>Absent</i> a l'observació</td></tr>
         </table>
+        <p>Si un absent arriba tard, esborra-li la <code>A</code>: s'afegeix al grup més petit sense refer els altres.</p>
         <p>Amb codis <b>V</b> apareix el selector <b>Veus</b>: grups barrejats amb les veus repartides, o grups separats per veu. Cada persona té una sola veu.</p>
         <p><b>S</b> = separar, <b>J</b> = junts, <b>V</b> = veu, sempre seguit d'un número. Cada número és un conjunt diferent: <code>S1</code> i <code>S2</code> no tenen res a veure.</p>
         <p>Diversos codis a la mateixa cel·la, separats per un espai: <code>S1 S3 J2</code>.</p>
@@ -385,6 +455,10 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
   <main>
     <div class="toolbar">
       <div class="views">
+        <button type="button" class="btn small side-toggle" id="sideToggle" aria-pressed="false" aria-controls="sidePanel" title="Amaga o mostra la configuració">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>
+          <span id="sideToggleTxt">Amaga la configuració</span><span class="warn-dot" title="Hi ha condicions que no es compleixen">⚠</span>
+        </button>
         <div class="vseg" role="group" aria-label="Vista">
           <button type="button" id="vGrid" aria-pressed="true">Grups</button>
           <button type="button" id="vPlan" aria-pressed="false">Plànol d'aula</button>
@@ -400,7 +474,6 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
           Desa o imprimeix
         </button>
         <button type="button" class="btn small" id="copyTxt">Copia notes per a Sheets</button>
-        <button type="button" class="btn small" id="full">Pantalla completa</button>
       </div>
       <div class="status" id="status" role="status" aria-live="polite"></div>
     </div>
@@ -410,6 +483,7 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
         <h2 class="board-title" id="boardTitle"></h2>
         <div class="board-meta" id="boardMeta"></div>
       </div>
+      <div class="board-crit" id="boardCrit" hidden></div>
       <div class="groups" id="groups"></div>
       <div class="plan-tools" id="planTools" hidden>
         <button type="button" class="btn small" id="planReset">Reorganitza les taules</button>
@@ -492,21 +566,29 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     const names = [], cond = [], nias = [], bad = new Set();
     text.split(/\r?\n/).forEach(line => {
       const cells = line.split(/\t|\|/).map(c => c.trim()).filter(Boolean);
-      const parts = [], c = { sep: [], join: [], voice: "" };
+      const parts = [], c = { sep: [], join: [], voice: "", absent: false };
       let nia = "";
       cells.forEach(cell => {
         if (/^\d+$/.test(cell)) { if (!nia && cell.length >= 4) nia = cell; return; }   // NIA: no es mostra
         const norm = cell.replace(/\b([sjv])\s+(\d+)\b/gi, "$1$2");
-        const toks = norm.split(/[\s,;]+/).filter(Boolean);
-        if (toks.length && toks.every(t => /^[a-z]+\d+$/i.test(t))) {
+        let toks = norm.split(/[\s,;]+/).filter(Boolean);
+        if (!(toks.length && toks.every(t => /^([a-z]+\d+|a)$/i.test(t)))) {
+          // Codis escrits al final de la mateixa cel·la que el nom: «Anna Ferrer S1»
+          const words = cell.split(/\s+/), tail = [];
+          while (words.length > 1 && /^[sjv]\d+[,;]?$/i.test(words[words.length - 1])) tail.unshift(words.pop().replace(/[,;]$/, ""));
+          if (!tail.length) { parts.push(cell); return; }
+          parts.push(words.join(" ").replace(/[,;]\s*$/, "")); toks = tail;
+        }
+        {
           toks.forEach(t => {
-            const u = t.toUpperCase();
-            if (/^S\d+$/.test(u)) { if (!c.sep.includes(u)) c.sep.push(u); }
+            const u = t.toUpperCase().replace(/^([A-Z]+)0+(\d)/, "$1$2");
+            if (u === "A") c.absent = true;
+            else if (/^S\d+$/.test(u)) { if (!c.sep.includes(u)) c.sep.push(u); }
             else if (/^J\d+$/.test(u)) { if (!c.join.includes(u)) c.join.push(u); }
             else if (/^V\d+$/.test(u)) { if (!c.voice) c.voice = u; else if (c.voice !== u) bad.add(t + " (dues veus)"); }
             else bad.add(t);
           });
-        } else parts.push(cell);
+        }
       });
       const name = parts.join(" ").replace(/\s+/g, " ").trim();
       if (name) { names.push(name); cond.push(c); nias.push(nia); }
@@ -536,8 +618,11 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
   function rand(n) { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; }
   function shuffled(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rand(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
+  // Absents marcats amb A a la llista: no entren als grups
+  const isAbs = i => !!(state.cond[i] && state.cond[i].absent);
+  const presentN = () => state.names.reduce((t, _, i) => t + (isAbs(i) ? 0 : 1), 0);
   function groupCount() {
-    const N = state.names.length;
+    const N = presentN();
     if (!N) return 0;
     let v = Math.max(1, parseInt(els.amount.value, 10) || 1);
     if (state.mode === "count") return Math.min(v, N);
@@ -548,11 +633,12 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     const N = state.names.length, parent = state.names.map((_, i) => i);
     const root = x => { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; };
     const firstOf = {};
-    state.cond.forEach((c, i) => c.join.forEach(j => {
+    state.cond.forEach((c, i) => !isAbs(i) && c.join.forEach(j => {
       if (firstOf[j] === undefined) firstOf[j] = i; else parent[root(i)] = root(firstOf[j]);
     }));
     const units = {};
     for (let i = 0; i < N; i++) {
+      if (isAbs(i)) continue;
       const r = root(i);
       (units[r] = units[r] || { members: [], sep: new Set() }).members.push(i);
       state.cond[i].sep.forEach(s => units[r].sep.add(s));
@@ -582,7 +668,7 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
         if (!cand.length) {
           const fit = all.filter(g => room(g) >= u.members.length);
           if (fit.length) { const m = Math.min(...fit.map(clash)); cand = fit.filter(g => clash(g) === m); v += m; }
-          else { const r = Math.max(...all.map(room)); cand = all.filter(g => room(g) === r); v += 1000; }
+          else { const r = Math.max(...all.map(room)); cand = all.filter(g => room(g) === r); const m = Math.min(...cand.map(clash)); cand = cand.filter(g => clash(g) === m); v += 1000 + m; }
         }
         if (balance) {
           // Repartiment equilibrat de veus: el grup amb menys alumnes de les veus d'aquesta unitat
@@ -602,7 +688,7 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     return best.map(g => shuffled(g));
   }
   function makeGroups() {
-    const n = groupCount(), N = state.names.length;
+    const n = groupCount(), N = presentN();
     state.selected = null; state.animate = true;
     if (!n) { state.groups = []; return; }
     const units = buildUnits();
@@ -638,18 +724,22 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
 
   // Comprova les condicions sobre els grups actuals (també després de moure noms a mà)
   function checkConditions() {
-    const sepL = {}, joinL = {};
-    state.cond.forEach((c, i) => { c.sep.forEach(x => (sepL[x] = sepL[x] || []).push(i)); c.join.forEach(x => (joinL[x] = joinL[x] || []).push(i)); });
+    const sepL = {}, joinL = {}, allN = {};
+    state.cond.forEach((c, i) => {
+      c.sep.concat(c.join).forEach(x => { allN[x] = (allN[x] || 0) + 1; });
+      if (isAbs(i)) return;
+      c.sep.forEach(x => (sepL[x] = sepL[x] || []).push(i)); c.join.forEach(x => (joinL[x] = joinL[x] || []).push(i));
+    });
     const nS = Object.keys(sepL).length, nJ = Object.keys(joinL).length;
     const nV = new Set(state.cond.map(c => c.voice).filter(Boolean)).size;
     if (!nS && !nJ && !nV) return null;
     const where = {}; state.groups.forEach((g, gi) => g.forEach(i => { where[i] = gi; }));
-    const n = state.groups.length, N = state.names.length, maxSize = Math.ceil(N / n);
+    const n = state.groups.length, N = presentN(), maxSize = Math.ceil(N / n);
     const issues = [], impossible = [];
     const byNum = (a, b) => a.localeCompare(b, "ca", { numeric: true });
     Object.keys(joinL).sort(byNum).forEach(j => {
       const gs = new Set(joinL[j].map(i => where[i]));
-      if (joinL[j].length < 2) impossible.push(`<b>${j}</b> només té una persona: cal posar-lo almenys a dues`);
+      if (allN[j] < 2) impossible.push(`<b>${j}</b> només té una persona: cal posar-lo almenys a dues`);
       if (gs.size > 1) issues.push(`<b>${j}</b> està repartit en ${gs.size} grups`);
     });
     buildUnits().forEach(u => {
@@ -665,11 +755,17 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
       });
     });
     Object.keys(sepL).sort(byNum).forEach(x => {
-      if (sepL[x].length < 2) impossible.push(`<b>${x}</b> només té una persona: no separa de ningú`);
+      if (allN[x] < 2) impossible.push(`<b>${x}</b> només té una persona: no separa de ningú`);
       const count = {}; sepL[x].forEach(i => { count[where[i]] = (count[where[i]] || 0) + 1; });
       const bad = Object.keys(count).filter(g => count[g] > 1).map(g => groupName(+g));
       if (bad.length) issues.push(`<b>${x}</b> coincideix a ${bad.join(", ")}`);
       if (sepL[x].length > n) impossible.push(`<b>${x}</b> té ${sepL[x].length} persones i només hi ha ${n} grups`);
+      else if (nV && voiceMode() === "split") {
+        // En grups separats per veu, cada veu només té els seus grups
+        const gv = {}; state.groups.forEach(g => { const v = g.length ? (state.cond[g[0]].voice || "sense veu") : ""; gv[v] = (gv[v] || 0) + 1; });
+        const pv = {}; sepL[x].forEach(i => { const v = state.cond[i].voice || "sense veu"; pv[v] = (pv[v] || 0) + 1; });
+        Object.keys(pv).sort(byNumCa).forEach(v => { if (pv[v] > (gv[v] || 0)) impossible.push(`<b>${x}</b> té ${pv[v]} persones de la veu <b>${v}</b> i aquesta veu només té ${gv[v] || 0} ${gv[v] === 1 ? "grup" : "grups"}`); });
+      }
     });
     if (nV) {
       const split = voiceMode() === "split";
@@ -681,7 +777,7 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
         const vs = new Set(u.members.map(i => state.cond[i].voice || "sense veu"));
         if (vs.size > 1) impossible.push(`Una unió <b>J</b> ajunta persones de veus diferents (${Array.from(vs).sort(byNumCa).join(", ")})`);
       });
-      const sinV = state.cond.filter(c => !c.voice).length;
+      const sinV = state.cond.filter((c, i) => !c.voice && !isAbs(i)).length;
       if (sinV) impossible.push(`${sinV} ${sinV === 1 ? "persona no té" : "persones no tenen"} codi <b>V</b>`);
     }
     return { nS, nJ, nV, issues, impossible };
@@ -700,9 +796,11 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     return g;
   }
   function today() { return new Date().toLocaleDateString("ca-ES", { day: "numeric", month: "long", year: "numeric" }); }
+  const klass = () => $("klass").value.trim();
   function metaText() {
-    const N = state.names.length, n = state.groups.length;
-    return `${N} ${N === 1 ? "persona" : "persones"} · ${n} ${n === 1 ? "grup" : "grups"} · ${today()}`;
+    const K = klass() ? klass() + " · " : "";
+    const N = presentN(), A = state.names.length - N, n = state.groups.length;
+    return `${K}${N} ${N === 1 ? "persona" : "persones"}${A ? ` · ${A} ${A === 1 ? "absent" : "absents"}` : ""} · ${n} ${n === 1 ? "grup" : "grups"} · ${today()}`;
   }
 
   // ---------- Interfície ----------
@@ -712,6 +810,8 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     let t = `<b>${N}</b> ${N === 1 ? "nom" : "noms"}`;
     if (state.isExample) t += ' <span class="example-tag">Exemple</span>';
     if (dup > 0) t += ` · <span class="warn">${dup} ${dup === 1 ? "repetit" : "repetits"}</span>`;
+    const nAbs = N - presentN();
+    if (nAbs) t += ` · <b>${nAbs}</b> ${nAbs === 1 ? "absent" : "absents"} (A)`;
     const withCond = state.cond.filter(c => c.sep.length || c.join.length).length;
     if (withCond) t += ` · ${withCond} amb condicions`;
     const vc = {}; state.cond.forEach(c => { if (c.voice) vc[c.voice] = (vc[c.voice] || 0) + 1; });
@@ -720,9 +820,9 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     document.getElementById("voiceWrap").hidden = !vk.length;
     if (state.badCodes.length) t += ` · <span class="warn">codis no reconeguts: ${state.badCodes.map(x => x.replace(/[<>&]/g, "")).join(", ")}</span>`;
     els.countLine.innerHTML = t;
-    const n = groupCount();
-    if (!N) { els.amountNote.textContent = ""; return; }
-    const lo = Math.floor(N / n), hi = Math.ceil(N / n);
+    const n = groupCount(), NP = presentN();
+    if (!NP) { els.amountNote.textContent = ""; return; }
+    const lo = Math.floor(NP / n), hi = Math.ceil(NP / n);
     const sizes = lo === hi ? `de ${lo}` : `de ${lo} o ${hi}`;
     els.amountNote.textContent = state.mode === "count"
       ? `grups ${sizes} persones`
@@ -740,8 +840,21 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
   const LV = Object.fromEntries(LEVELS.map(l => [l.k, l]));
   const keyOf = i => state.nia[i] || state.names[i];
   const DEFAULT_LV = "AN";
-  const ratingOf = i => state.cur[keyOf(i)] || DEFAULT_LV;
-  function setRating(i, k) { state.cur[keyOf(i)] = k; state.dirty = true; }
+  const RLV = ["AE", "AN", "AS", "NA"];
+  function curRubric() {
+    const crit = $("rubCrit").value.trim(), r = { crit };
+    RLV.forEach(k => { r[k] = $("rub" + k).value.trim(); });
+    return (crit || RLV.some(k => r[k])) ? r : null;
+  }
+  function renderCrit() {
+    const r = curRubric(), el = $("boardCrit");
+    el.innerHTML = state.obs && r && r.crit ? "<b>Criteri:</b> " + esc(r.crit) : "";
+    el.hidden = !el.innerHTML;
+  }
+  const ratingOf = i => isAbs(i) ? "ABS" : (state.cur[keyOf(i)] || DEFAULT_LV);
+  function setRating(i, k) { state.cur[keyOf(i)] = k; state.dirty = true; state.curTouched = true; }
+  // L'activitat en curs s'exporta si s'ha tocat o si encara no se n'ha desat cap
+  const withCur = () => state.obsStarted && (state.curTouched || !state.acts.length);
 
   function chipEl(idx, pos, gi) {
     const li = document.createElement("li");
@@ -885,11 +998,14 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     const counts = Object.fromEntries(LEVELS.map(l => [l.k, 0]));
     if (state.obsStarted) state.names.forEach((_, i) => counts[ratingOf(i)]++);
     $("legend").innerHTML = LEVELS.map(l => `<div class="${l.k}" style="--lv:${l.color}" title="${l.name}"><b>${state.obsStarted ? counts[l.k] : "–"}</b>${l.label}</div>`).join("");
+    renderCrit();
     const list = $("actList");
     if (!state.acts.length) list.innerHTML = '<li><span class="hint">Encara cap. L\'activitat en curs també s\'exporta.</span></li>';
-    else list.innerHTML = state.acts.map((a, k) => `<li><span>${esc(actHeader(a))}</span><button type="button" data-del="${k}" aria-label="Elimina ${esc(actHeader(a))}">×</button></li>`).join("");
+    else list.innerHTML = state.acts.map((a, k) => `<li><span>${esc(actLabel(a))}</span><button type="button" data-del="${k}" aria-label="Elimina ${esc(actHeader(a))}">×</button></li>`).join("");
   }
   const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const short = (t, n) => t.length > n ? t.slice(0, n - 1) + "…" : t;
+  const actLabel = a => actHeader(a) + (a.rubric && a.rubric.crit ? " · " + short(a.rubric.crit, 40) : "");
   function actHeader(a) {
     const d = a.date ? a.date.split("-").reverse().join("/") : "";
     return (a.name || "Activitat") + (d ? " (" + d + ")" : "");
@@ -908,13 +1024,13 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     if (!state.obsStarted) return;
     state.acts.push(snapshot());
     const keep = {}; state.names.forEach((_, i) => { if (ratingOf(i) === "ABS") keep[keyOf(i)] = "ABS"; });
-    state.cur = keep; $("actName").value = ""; state.dirty = true;
+    state.cur = keep; state.dirty = true; state.curTouched = false;
     render(); flash("Activitat desada. Comença la següent: tothom torna a AN (els absents es mantenen)");
-    $("actName").focus();
+    $("actName").focus(); $("actName").select();
   };
   function snapshot() {
     const r = {}; state.names.forEach((_, i) => { r[keyOf(i)] = ratingOf(i); });
-    return { name: $("actName").value.trim(), date: $("actDate").value, ratings: r };
+    return { name: $("actName").value.trim(), date: $("actDate").value, ratings: r, rubric: curRubric() };
   }
   $("actList").addEventListener("click", e => {
     const b = e.target.closest("[data-del]"); if (!b) return;
@@ -928,7 +1044,9 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
   function openPop(chip) {
     popIdx = +chip.dataset.i;
     const cur = ratingOf(popIdx);
-    pop.innerHTML = LEVELS.map(l => `<button type="button" role="menuitem" class="${l.k}${l.k === cur ? " cur" : ""}" data-lv="${l.k}" style="--lv:${l.color}" title="${l.name}">${l.label}</button>`).join("");
+    const rb = curRubric(), rich = !!(rb && RLV.some(k => rb[k]));
+    pop.classList.toggle("rich", rich);
+    pop.innerHTML = LEVELS.map(l => `<button type="button" role="menuitem" class="${l.k}${l.k === cur ? " cur" : ""}" data-lv="${l.k}" style="--lv:${l.color}" title="${l.name}">${rich ? `<b>${l.label}</b><span>${esc(l.k === "ABS" ? "" : rb[l.k] || "")}</span>` : l.label}</button>`).join("");
     pop.classList.add("open");
     const r = chip.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight;
     let x = Math.min(window.innerWidth - pw - 8, Math.max(8, r.left + r.width / 2 - pw / 2));
@@ -946,24 +1064,32 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
   // Exportació
   function exportRows() {
     const acts = state.acts.slice();
-    if (state.obsStarted) acts.push(snapshot());
+    if (withCur()) acts.push(snapshot());
     const hasNia = state.nia.some(Boolean);
     const where = {}; state.groups.forEach((g, gi) => g.forEach(i => { where[i] = groupName(gi); }));
     let order = state.names.map((_, i) => i);
     if ($("order").value === "alpha") order.sort((a, b) => state.names[a].localeCompare(state.names[b], "ca", { sensitivity: "base" }));
     const header = (hasNia ? ["NIA"] : []).concat(["Alumne", "Grup"], acts.map(actHeader));
+    const crit = acts.some(a => a.rubric) ? (hasNia ? [""] : []).concat(["Criteri d'avaluació", ""], acts.map(a => a.rubric ? a.rubric.crit : "")) : null;
     const rows = order.map(i => (hasNia ? [state.nia[i]] : []).concat([state.names[i], where[i] || ""],
       acts.map(a => { const v = a.ratings[keyOf(i)]; return v === "ABS" ? "Absent" : (v || ""); })));
-    return { header, rows, nActs: acts.length };
+    return { header, crit, rows, nActs: acts.length, acts };
   }
   $("xlsxBtn").onclick = async () => {
-    const { header, rows, nActs } = exportRows();
+    const { header, crit, rows, nActs, acts } = exportRows();
+    remindKlass();
     if (!nActs) { flash("Encara no hi ha cap observació. Activa «Observació» a dalt."); return; }
     if (!window.XLSX) { flash("El generador d'Excel no s'ha carregat. Fes servir «Copia per a Sheets»."); return; }
-    const ws = XLSX.utils.aoa_to_sheet([header].concat(rows));
+    const ws = XLSX.utils.aoa_to_sheet([header].concat(crit ? [crit] : [], rows));
     ws["!cols"] = header.map((h, k) => ({ wch: Math.max(8, Math.min(40, Math.max(String(h).length, ...rows.map(r => String(r[k] || "").length)) + 2)) }));
     ws["!freeze"] = { xSplit: 0, ySplit: 1 };
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Observació");
+    if (crit) {
+      const rr = [["Activitat", "Criteri d'avaluació", "AE", "AN", "AS", "NA"]].concat(acts.filter(a => a.rubric).map(a => [actHeader(a), a.rubric.crit, a.rubric.AE, a.rubric.AN, a.rubric.AS, a.rubric.NA]));
+      const ws2 = XLSX.utils.aoa_to_sheet(rr);
+      ws2["!cols"] = [{ wch: 28 }, { wch: 40 }, { wch: 34 }, { wch: 34 }, { wch: 34 }, { wch: 34 }];
+      XLSX.utils.book_append_sheet(wb, ws2, "Rúbriques");
+    }
     const buf = XLSX.write(wb, { bookType: "xlsx", type: "array" });
     const ok = await save("observacio-" + fileBase() + ".xlsx", buf);
     if (ok) state.dirty = false;
@@ -971,12 +1097,12 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
   // Còpia per a Sheets: previsualització i només notes numèriques
   const NUM = { AE: 4, AN: 3, AS: 2, NA: 1, ABS: "" };
   const cModal = $("copyModal");
-  function allActs() { const a = state.acts.slice(); if (state.obsStarted) a.push(snapshot()); return a; }
+  function allActs() { const a = state.acts.slice(); if (withCur()) a.push(snapshot()); return a; }
   function alphaOrder() { return state.names.map((_, i) => i).sort((a, b) => state.names[a].localeCompare(state.names[b], "ca", { sensitivity: "base" })); }
   function renderCopyTable() {
     const acts = allActs(), sel = $("cAct").value;
     const shown = sel === "all" ? acts.map((a, k) => k) : [+sel];
-    const head = `<tr><th>#</th><th>Alumne</th>${shown.map(k => `<th>${esc(actHeader(acts[k]))}</th>`).join("")}</tr>`;
+    const head = `<tr><th>#</th><th>Alumne</th>${shown.map(k => `<th>${esc(actLabel(acts[k]))}</th>`).join("")}</tr>`;
     const body = alphaOrder().map((i, n) => `<tr><td class="n">${n + 1}</td><td>${esc(state.names[i])}</td>${shown.map(k => {
       const v = acts[k].ratings[keyOf(i)] || DEFAULT_LV, l = LV[v];
       return `<td><span class="g ${v}" style="--lv:${l.color}"><i>${l.label}</i><b>${NUM[v]}</b></span></td>`;
@@ -988,7 +1114,7 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
   $("obsCopy").onclick = () => {
     const acts = allActs();
     if (!acts.length) { flash("Encara no hi ha cap observació. Activa «Observació» a dalt."); return; }
-    const opts = acts.map((a, k) => `<option value="${k}">${esc(actHeader(a))}</option>`);
+    const opts = acts.map((a, k) => `<option value="${k}">${esc(actLabel(a))}</option>`);
     if (acts.length > 1) opts.push('<option value="all">Totes (una columna per activitat)</option>');
     $("cAct").innerHTML = opts.join("");
     $("cAct").value = String(acts.length - 1);
@@ -1000,6 +1126,8 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     if (!window.jspdf) { flash("El generador de PDF no s'ha carregat. Torna-ho a provar en uns segons."); return; }
     const acts = allActs(), sel = $("cAct").value;
     const shown = sel === "all" ? acts.map((a, k) => k) : [+sel];
+    remindKlass();
+    if (shown.some(k => acts[k].rubric)) { await printRubric(shown.map(k => acts[k])); return; }
     const doc = new window.jspdf.jsPDF({ unit: "mm", format: "a4", orientation: shown.length > 4 ? "landscape" : "portrait" });
     const PW = doc.internal.pageSize.getWidth(), PH = doc.internal.pageSize.getHeight(), M = 14;
     const numW = 9, colW = Math.min(30, Math.max(18, (PW - 2 * M - numW - 70) / shown.length));
@@ -1027,13 +1155,13 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
         const big = doc.splitTextToSize(actTitle, PW - 2 * M - 8)[0];
         doc.text(big, M + 6, y + 8.5);
         doc.setFont("helvetica", "bold"); doc.setFontSize(14); doc.setTextColor("#16a34a");
-        doc.text(actDate, M + 6, y + 17);
+        doc.text(actDate + (klass() ? " · " + klass() : ""), M + 6, y + 17);
         doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor("#5d6680");
         doc.text(`${title} · ${state.names.length} alumnes · Ordre alfabètic per cognoms · AE = 4 · AN = 3 · AS = 2 · NA = 1 · Absent = buit`, M, y + 28);
         y += 34;
       } else {
         doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor("#16203a");
-        doc.text(`${actTitle} · ${actDate}`, M, y + 4); y += 8;
+        doc.text(`${actTitle} · ${actDate}${klass() ? " · " + klass() : ""}`, M, y + 4); y += 8;
       }
       const hLines = shown.map(k => doc.splitTextToSize(actHeader(acts[k]), colW - 2));
       const hh = Math.max(7, Math.max(...hLines.map(l => l.length)) * 3.6 + 3);
@@ -1074,6 +1202,91 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     const name = sel === "all" ? "totes" : (acts[+sel].name || "activitat").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^\w]+/g, "-").toLowerCase();
     await save(`notes-${name}-${fileBase()}.pdf`, doc.output("arraybuffer"));
   };
+  // Graella de rúbrica de tot el grup (A4 horitzontal)
+  async function printRubric(list) {
+    const doc = new window.jspdf.jsPDF({ unit: "mm", format: "a4", orientation: "landscape" });
+    const PW = doc.internal.pageSize.getWidth(), PH = doc.internal.pageSize.getHeight(), M = 12;
+    const numW = 8, nameW = 58, notaW = 14, lvW = (PW - 2 * M - numW - nameW - notaW) / 4, RH = 7;
+    const mix = (hex, t) => { const n = parseInt(hex.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255].map(v => Math.round(v * t + 255 * (1 - t))); };
+    const title = els.title.value.trim() || "Observació d'aula";
+    const fmtD = d => d ? d.split("-").reverse().join("/") : today();
+    const x0 = M + numW + nameW;
+    let page = 1;
+    const EMPTY = { crit: "", AE: "", AN: "", AS: "", NA: "" };
+    const footer = () => { doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor("#9aa2b8"); doc.text("Pàgina " + page, PW - M, PH - 5, { align: "right" }); };
+    list.forEach((a, ai) => {
+    const rb = a.rubric || EMPTY;
+    if (ai) { footer(); doc.addPage(); page++; }
+    const header = first => {
+      let y = M;
+      if (first) {
+        doc.setFillColor("#16a34a"); doc.rect(M, y, 2.2, 19, "F");
+        doc.setFont("helvetica", "bold"); doc.setFontSize(20); doc.setTextColor("#16203a");
+        doc.text(doc.splitTextToSize(a.name || "Activitat sense títol", PW - 2 * M - 70)[0], M + 6, y + 8);
+        doc.setFontSize(13); doc.setTextColor("#16a34a"); doc.text(fmtD(a.date) + (klass() ? " · " + klass() : ""), M + 6, y + 16);
+        doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor("#5d6680");
+        doc.text(`${title} · ${state.names.length} alumnes · Ordre alfabètic per cognoms`, PW - M, y + 5, { align: "right" });
+        if (list.length > 1) doc.text(`Criteri ${ai + 1} de ${list.length}`, PW - M, y + 15, { align: "right" });
+        doc.text("AE = 4 · AN = 3 · AS = 2 · NA = 1 · Absent = buit", PW - M, y + 10, { align: "right" });
+        y += 24;
+        if (rb.crit) {
+          doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor("#16203a");
+          const cl = doc.splitTextToSize("Criteri d'avaluació: " + rb.crit, PW - 2 * M);
+          doc.text(cl, M, y + 4); y += cl.length * 4.8 + 3;
+        }
+      } else {
+        doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor("#16203a");
+        doc.text(`${a.name || "Activitat"} · ${fmtD(a.date)}${klass() ? " · " + klass() : ""}`, M, y + 4); y += 8;
+      }
+      doc.setFont("helvetica", "normal"); doc.setFontSize(7.8);
+      const dl = RLV.map(k => doc.splitTextToSize(rb[k] || "", lvW - 4));
+      const hh = 8 + Math.max(1, ...dl.map(l => l.length)) * 3.3 + 2;
+      doc.setFillColor("#eef1f7"); doc.rect(M, y, numW + nameW, hh, "F"); doc.rect(PW - M - notaW, y, notaW, hh, "F");
+      doc.setFont("helvetica", "bold"); doc.setFontSize(8.5); doc.setTextColor("#5d6680");
+      doc.text("#", M + 2, y + 5.5); doc.text("Alumne", M + numW, y + 5.5); doc.text("Nota", PW - M - notaW / 2, y + 5.5, { align: "center" });
+      RLV.forEach((k, c) => {
+        const x = x0 + c * lvW;
+        doc.setFillColor(...mix(LV[k].color, 0.16)); doc.rect(x, y, lvW, hh, "F");
+        doc.setFillColor(LV[k].color); doc.rect(x, y, lvW, 6.5, "F");
+        doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor("#ffffff");
+        doc.text(`${k} · ${NUM[k]}`, x + lvW / 2, y + 4.6, { align: "center" });
+        doc.setFont("helvetica", "normal"); doc.setFontSize(7.8); doc.setTextColor("#16203a");
+        doc.text(dl[c], x + 2, y + 9.8);
+      });
+      doc.setDrawColor("#d5dae6"); doc.setLineWidth(0.2);
+      [x0, x0 + lvW, x0 + 2 * lvW, x0 + 3 * lvW, PW - M - notaW].forEach(x => doc.line(x, y, x, y + hh));
+      return y + hh;
+    };
+    let y = header(true);
+    alphaOrder().forEach((i, n) => {
+      if (y + RH > PH - M) {
+        footer(); doc.addPage(); page++; y = header(false);
+      }
+      const v = a.ratings[keyOf(i)] || DEFAULT_LV;
+      if (n % 2) { doc.setFillColor("#f7f8fb"); doc.rect(M, y, PW - 2 * M, RH, "F"); }
+      doc.setFont("helvetica", "normal"); doc.setFontSize(9.5); doc.setTextColor("#9aa2b8"); doc.text(String(n + 1), M + 2, y + 4.8);
+      doc.setTextColor("#16203a");
+      let nm = state.names[i];
+      while (doc.getTextWidth(nm) > nameW - 3 && nm.length > 2) nm = nm.slice(0, -2) + "…";
+      doc.text(nm, M + numW, y + 4.8);
+      if (v === "ABS") {
+        doc.setFont("helvetica", "italic"); doc.setFontSize(9); doc.setTextColor("#5d6680");
+        doc.text("Absent", x0 + 2 * lvW, y + 4.8, { align: "center" });
+      } else {
+        const c = RLV.indexOf(v), x = x0 + c * lvW;
+        doc.setFillColor(...mix(LV[v].color, 0.35)); doc.rect(x + 0.6, y + 0.6, lvW - 1.2, RH - 1.2, "F");
+        doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); doc.setTextColor("#16203a"); doc.text(v, x + lvW / 2, y + 4.8, { align: "center" });
+        doc.setFontSize(10.5); doc.text(String(NUM[v]), PW - M - notaW / 2, y + 4.9, { align: "center" });
+      }
+      doc.setDrawColor("#e3e7f0"); doc.setLineWidth(0.2); doc.line(M, y + RH, PW - M, y + RH);
+      [x0, x0 + lvW, x0 + 2 * lvW, x0 + 3 * lvW, PW - M - notaW].forEach(x => doc.line(x, y, x, y + RH));
+      y += RH;
+    });
+    });
+    footer();
+    const fname = list.length > 1 ? "totes" : (list[0].name || "activitat").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w]+/g, "-").toLowerCase();
+    await save(`rubriques-${fname}-${fileBase()}.pdf`, doc.output("arraybuffer"));
+  }
   $("cClose").onclick = () => cModal.classList.remove("open");
   cModal.addEventListener("click", e => { if (e.target === cModal) cModal.classList.remove("open"); });
   $("cCopy").onclick = async () => {
@@ -1101,6 +1314,10 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
   function renderConditions() {
     const box = document.getElementById("condLine");
     const r = state.groups.length ? checkConditions() : null;
+    const broken = !!(r && r.issues.length);
+    $("sideToggle").classList.toggle("has-warn", broken);
+    if (broken && !state.condBroken) setTimeout(() => flash("⚠ Alguna condició no es compleix: mira el requadre de condicions de la barra lateral"), 0);
+    state.condBroken = broken;
     if (!r) { box.className = "cond"; box.innerHTML = ""; return; }
     const parts = [];
     if (r.nS) parts.push(`${r.nS} ${r.nS === 1 ? "separació" : "separacions"}`);
@@ -1181,7 +1398,7 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
   // ---------- Controls ----------
   function setMode(m) {
     if (m === state.mode) return;
-    const N = state.names.length || 24;
+    const N = presentN() || 24;
     const n = groupCount() || 1;
     state.mode = m;
     els.modeCount.setAttribute("aria-pressed", m === "count");
@@ -1191,6 +1408,26 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     regroup();
   }
   function regroup() { makeGroups(); updateCounts(); render(); }
+  // Només han canviat les A: es treuen els absents i els que arriben s'afegeixen sense refer els grups
+  function updateAbsents() {
+    let out = 0; const added = [];
+    state.groups.forEach(g => { for (let p = g.length - 1; p >= 0; p--) if (isAbs(g[p])) { g.splice(p, 1); out++; } });
+    const placed = new Set(state.groups.flat());
+    state.names.forEach((_, i) => {
+      if (isAbs(i) || placed.has(i) || !state.groups.length) return;
+      const c = state.cond[i], all = state.groups.map((_, g) => g);
+      const mate = all.find(g => state.groups[g].some(j => state.cond[j].join.some(x => c.join.includes(x))));
+      let cand = mate !== undefined ? [mate] : all.filter(g => !state.groups[g].some(j => state.cond[j].sep.some(x => c.sep.includes(x))));
+      if (!cand.length) cand = all;
+      const min = Math.min(...cand.map(g => state.groups[g].length));
+      cand = cand.filter(g => state.groups[g].length === min);
+      const g = cand[rand(cand.length)];
+      state.groups[g].push(i); placed.add(i); added.push(g);
+    });
+    state.selected = null; updateCounts(); render();
+    if (added.length) flash(added.length === 1 ? `S'ha afegit un alumne a ${groupName(added[0])}` : `S'han afegit ${added.length} alumnes als grups`);
+    else if (out) flash(out === 1 ? "S'ha tret un absent dels grups" : `S'han tret ${out} absents dels grups`);
+  }
   els.modeCount.onclick = () => setMode("count");
   els.modeSize.onclick = () => setMode("size");
   $("minus").onclick = () => { els.amount.value = Math.max(1, (+els.amount.value || 1) - 1); regroup(); };
@@ -1202,7 +1439,13 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
   let t;
   els.names.addEventListener("input", () => {
     clearTimeout(t);
-    t = setTimeout(() => { state.isExample = false; applyParse(els.names.value); state.customNames = {}; regroup(); }, 250);
+    t = setTimeout(() => {
+      const sig = () => JSON.stringify([state.names, state.cond.map(c => [c.sep, c.join, c.voice])]);
+      const before = sig(), had = state.groups.length && !state.isExample;
+      state.isExample = false; applyParse(els.names.value);
+      if (had && sig() === before) { updateAbsents(); return; }
+      state.customNames = {}; regroup();
+    }, 250);
   });
   [els.title].forEach(x => x.addEventListener("input", render));
   els.naming.addEventListener("change", () => { state.customNames = {}; render(); });
@@ -1346,7 +1589,7 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
     return cv;
   }
   function fileBase() {
-    const t = (els.title.value.trim() || "grups").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^\w]+/g, "-").replace(/^-|-$/g, "").toLowerCase();
+    const t = ((els.title.value.trim() || "grups") + (klass() ? "-" + klass() : "")).normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^\w]+/g, "-").replace(/^-|-$/g, "").toLowerCase();
     const d = new Date(); const p = x => String(x).padStart(2, "0");
     return `${t}-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
   }
@@ -1391,6 +1634,7 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
   const overlay = $("overlay");
   function closeOverlay() { overlay.classList.remove("open"); }
   $("viewImg").onclick = async () => {
+    remindKlass();
     if (!state.groups.length) return;
     const cv = await drawImage();
     $("overlayImg").src = cv.toDataURL("image/png");
@@ -1400,18 +1644,163 @@ main { padding: 26px clamp(16px, 3vw, 40px) 40px; min-width: 0; display: flex; f
   overlay.addEventListener("click", e => { if (e.target === overlay) closeOverlay(); });
 
   $("copyTxt").onclick = () => $("obsCopy").onclick();
-  $("full").onclick = async () => {
-    try {
-      if (document.fullscreenElement) await document.exitFullscreen();
-      else await els.board.requestFullscreen();
-    } catch (e) { flash("La pantalla completa no està disponible aquí"); }
+  $("sideToggle").onclick = () => {
+    const hide = !document.querySelector(".app").classList.contains("collapsed");
+    document.querySelector(".app").classList.toggle("collapsed", hide);
+    $("sideToggle").setAttribute("aria-pressed", hide);
+    $("sideToggleTxt").textContent = hide ? "Mostra la configuració" : "Amaga la configuració";
+    render();
   };
+
+  // ---------- Rúbriques ----------
+  const RUB_KEY = "tauler-aula.rubriques";
+  let bank = [];
+  try { bank = JSON.parse(localStorage.getItem(RUB_KEY) || "[]"); if (!Array.isArray(bank)) bank = []; } catch (e) { bank = []; }
+  function storeBank() {
+    try { localStorage.setItem(RUB_KEY, JSON.stringify(bank)); }
+    catch (e) { flash("Aquest navegador no deixa desar el banc: es perdrà en tancar la pestanya. Fes «Copia el banc» per guardar-lo al full."); }
+  }
+  function renderBank() {
+    const sel = $("rubPick"), v = sel.value;
+    sel.innerHTML = `<option value="">${bank.length ? "— Tria una rúbrica (" + bank.length + ") —" : "— El banc és buit: importa'l o desa'n una —"}</option>` +
+      bank.map((r, k) => `<option value="${k}">${esc(r.name || short(r.crit, 50))}</option>`).join("");
+    if (v && bank[+v]) sel.value = v;
+  }
+  function rubChanged() {
+    const r = curRubric();
+    $("rubSum").textContent = r ? "· " + short(r.crit || "sense criteri", 34) : "(opcional)";
+    renderCrit();
+  }
+  function setRubric(r) {
+    $("rubName").value = r ? r.name || "" : ""; $("rubCrit").value = r ? r.crit || "" : "";
+    RLV.forEach(k => { $("rub" + k).value = r ? r[k] || "" : ""; });
+    rubChanged();
+  }
+  $("rubPick").onchange = () => { const r = bank[+$("rubPick").value]; if (r) { setRubric(r); flash("Rúbrica carregada: " + (r.name || short(r.crit, 30))); } };
+  ["rubCrit"].concat(RLV.map(k => "rub" + k)).forEach(id => $(id).addEventListener("input", rubChanged));
+  $("rubSave").onclick = () => {
+    const r = curRubric();
+    if (!r || !r.crit) { flash("Escriu almenys el criteri d'avaluació"); $("rubCrit").focus(); return; }
+    const name = $("rubName").value.trim() || $("actName").value.trim() || short(r.crit, 40);
+    $("rubName").value = name;
+    const k = bank.findIndex(b => (b.name || "").toLowerCase() === name.toLowerCase());
+    const item = Object.assign({ name }, r);
+    if (k >= 0) bank[k] = item; else bank.push(item);
+    storeBank(); renderBank(); $("rubPick").value = String(k >= 0 ? k : bank.length - 1);
+    flash(k >= 0 ? "Rúbrica actualitzada al banc" : "Rúbrica desada al banc");
+  };
+  $("rubDel").onclick = () => {
+    const b = $("rubDel"), k = $("rubPick").value;
+    if (k === "") { flash("Tria primer una rúbrica del banc"); return; }
+    if (!b.dataset.confirm) { b.dataset.confirm = "1"; b.textContent = "Segur? Torna a prémer"; setTimeout(() => { delete b.dataset.confirm; b.textContent = "Treu del banc"; }, 3000); return; }
+    delete b.dataset.confirm; b.textContent = "Treu del banc";
+    bank.splice(+k, 1); storeBank(); $("rubPick").value = ""; renderBank(); flash("Rúbrica treta del banc");
+  };
+  // Files copiades de Google Sheets (també cel·les amb salts de línia, entre cometes)
+  function parseTSV(text, sep = "\t") {
+    const rows = []; let row = [], cell = "", q = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (q) { if (ch === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += ch; }
+      else if (ch === '"' && cell === "") q = true;
+      else if (ch === sep) { row.push(cell); cell = ""; }
+      else if (ch === "\n" || ch === "\r") { if (ch === "\r" && text[i + 1] === "\n") i++; row.push(cell); rows.push(row); row = []; cell = ""; }
+      else cell += ch;
+    }
+    if (cell || row.length) { row.push(cell); rows.push(row); }
+    return rows.map(r => r.map(c => c.trim())).filter(r => r.some(Boolean));
+  }
+  function rowsToItems(rows) {
+    return rows.map(r => {
+      r = r.slice(0, 6);
+      if (r.length < 5) return null;
+      if (r.length === 5) r.unshift("");
+      const [name, crit, AE, AN, AS, NA] = r;
+      if (!crit || /^criteri/i.test(crit) || /^ae$/i.test(AE)) return null;   // capçalera
+      return { name: name || short(crit, 40), crit, AE, AN, AS, NA };
+    }).filter(Boolean);
+  }
+  $("rubAdd").onclick = () => {
+    let add = 0, upd = 0;
+    rowsToItems(parseTSV($("rubPaste").value)).forEach(item => {
+      const k = bank.findIndex(b => (b.name || "").toLowerCase() === item.name.toLowerCase());
+      if (k >= 0) { bank[k] = item; upd++; } else { bank.push(item); add++; }
+    });
+    if (!add && !upd) { flash("No he trobat cap rúbrica: calen sis columnes (Nom · Criteri · AE · AN · AS · NA)"); return; }
+    storeBank(); renderBank(); $("rubPaste").value = "";
+    flash(`Banc: ${add} ${add === 1 ? "rúbrica nova" : "rúbriques noves"}${upd ? ` i ${upd} ${upd === 1 ? "actualitzada" : "actualitzades"}` : ""}`);
+  };
+  $("rubCopy").onclick = async () => {
+    if (!bank.length) { flash("El banc és buit"); return; }
+    const cellTxt = c => /[\t\n"]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c;
+    const txt = [["Nom", "Criteri", "AE", "AN", "AS", "NA"]].concat(bank.map(r => [r.name, r.crit, r.AE, r.AN, r.AS, r.NA]))
+      .map(r => r.map(c => cellTxt(c || "")).join("\t")).join("\n");
+    try { await navigator.clipboard.writeText(txt); flash(`Banc copiat (${bank.length} rúbriques): enganxa'l a Google Sheets`); }
+    catch (e) { $("rubPaste").value = txt; $("rubPaste").select(); flash("Copia el text seleccionat amb Ctrl+C"); }
+  };
+
+  // Banc des d'un full de Google publicat al web (CSV). El full no ha de contenir res més que les rúbriques.
+  const URL_KEY = "tauler-aula.rubriques-full", AUTO_KEY = "tauler-aula.rubriques-auto";
+  const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+  const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+  function csvUrl(u) {
+    u = u.trim();
+    if (/\/spreadsheets\/d\/e\//.test(u)) {
+      if (/\/pubhtml/.test(u)) return u.replace(/\/pubhtml.*$/, "/pub?output=csv");
+      if (/output=/.test(u)) return u.replace(/output=\w+/, "output=csv");
+      return u + (u.includes("?") ? "&" : "?") + "output=csv";
+    }
+    const m = u.match(/\/spreadsheets\/d\/([\w-]{20,})/);
+    if (m) { const gid = (u.match(/gid=(\d+)/) || [])[1]; return `https://docs.google.com/spreadsheets/d/${m[1]}/export?format=csv${gid ? "&gid=" + gid : ""}`; }
+    return u;
+  }
+  async function fetchBank(silent) {
+    const u = csvUrl($("rubUrl").value);
+    if (!/^https:\/\//.test(u)) { if (!silent) { flash("Enganxa l'adreça del full publicat al web"); $("rubUrl").focus(); } return; }
+    lsSet(URL_KEY, $("rubUrl").value.trim());
+    try {
+      const r = await fetch(u, { cache: "no-store" });
+      if (!r.ok) throw new Error(r.status);
+      const txt = await r.text();
+      if (/^\s*</.test(txt)) throw new Error("html");
+      const items = rowsToItems(parseTSV(txt, ","));
+      if (!items.length) { flash("El full no té cap rúbrica: calen sis columnes (Nom · Criteri · AE · AN · AS · NA)"); return; }
+      const names = new Set(items.map(x => x.name.toLowerCase()));
+      bank = bank.filter(b => b.src !== "full" && !names.has((b.name || "").toLowerCase())).concat(items.map(x => Object.assign(x, { src: "full" })));
+      storeBank(); renderBank();
+      flash(`Banc actualitzat des del full: ${items.length} ${items.length === 1 ? "rúbrica" : "rúbriques"}`);
+    } catch (e) {
+      flash(silent ? "No s'ha pogut actualitzar el banc des del full: es fa servir l'última còpia" : "No he pogut llegir el full. Comprova que està publicat al web en format CSV (Fitxer → Comparteix → Publica al web). A la versió de Claude, enganxa'l.");
+    }
+  }
+  $("rubFetch").onclick = () => fetchBank(false);
+  $("rubAuto").onchange = () => lsSet(AUTO_KEY, $("rubAuto").checked ? "1" : "0");
+  $("rubUrl").value = lsGet(URL_KEY) || "";
+  $("rubAuto").checked = lsGet(AUTO_KEY) !== "0";
+
+  // Classe (nivell i grup): el navegador recorda les que ja s'han escrit
+  const KL_KEY = "tauler-aula.classes";
+  let classes = []; try { classes = JSON.parse(lsGet(KL_KEY) || "[]"); if (!Array.isArray(classes)) classes = []; } catch (e) { classes = []; }
+  const renderKlass = () => { $("klassList").innerHTML = classes.map(c => `<option value="${esc(c)}"></option>`).join(""); };
+  $("klass").addEventListener("input", () => { $("klass").classList.remove("need"); render(); });
+  $("klass").addEventListener("change", () => {
+    const k = klass(); if (!k) return;
+    classes = [k].concat(classes.filter(c => c.toLowerCase() !== k.toLowerCase())).slice(0, 30);
+    lsSet(KL_KEY, JSON.stringify(classes)); renderKlass();
+  });
+  function remindKlass() {
+    if (klass()) return;
+    $("klass").classList.add("need");
+    setTimeout(() => flash("Recorda indicar la classe (nivell i grup) a Presentació"), 0);
+  }
 
   // ---------- Inici ----------
   els.names.value = EXAMPLE.join("\n");
   applyParse(els.names.value);
   $("actDate").value = isoToday();
   regroup();
+  renderBank(); rubChanged(); renderKlass();
+  if ($("rubUrl").value && $("rubAuto").checked) fetchBank(true);
 
   if (window.claude && typeof window.claude.use === "function") {
     window.claude.use("downloads").then(d => {
